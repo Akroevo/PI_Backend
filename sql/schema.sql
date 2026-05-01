@@ -30,7 +30,7 @@ CREATE TABLE aluno (
 CREATE TABLE curso (
   idCurso INT AUTO_INCREMENT PRIMARY KEY,
   nome VARCHAR(100),
-  tipoCurso VARCHAR(45),
+  tipoCurso ENUM('EAD', 'Presencial', 'Hibrido'),
   cargaHorariaTotal INT,
   categoria VARCHAR(45)
 );

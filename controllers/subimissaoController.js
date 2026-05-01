@@ -1,4 +1,17 @@
 const Submissao = require('../models/submissaoModel');
+const Notificacao = require('../models/notificacaoModel');
+const nodemailer = require('nodemailer');
+
+
+const transporter = nodemailer.createTransport({
+  host: process.env.MAIL_HOST,
+  port: 587,
+  auth: {
+    user: process.env.MAIL_USER,
+    pass: process.env.MAIL_PASS,
+  }
+});
+
 
 exports.getAll = async (req, res) => {
   const [rows] = await Submissao.findAll();
@@ -27,12 +40,42 @@ exports.create = async (req, res) => {
 };
 
 exports.updateStatus = async (req, res) => {
-  const { status, observacao } = req.body;
-  await Submissao.updateStatus(req.params.id, status, observacao);
-  res.json({ message: 'Status atualizado' });
+  try {
+    const { status, observacao, emailAluno } = req.body;
+
+    
+    await Submissao.updateStatus(req.params.id, status, observacao);
+
+    const assunto = `Sua atividade foi ${status}`;
+    const corpo = `Olá! Sua submissão foi ${status}. Observação: ${observacao || 'Nenhuma'}`;
+
+    
+    console.log(`Enviando email para: ${emailAluno}`);
+    await transporter.sendMail({
+      from: process.env.MAIL_USER,
+      to: emailAluno,
+      subject: assunto,
+      text: corpo
+    });
+    console.log('Email enviado com sucesso!');
+
+    
+    await Notificacao.create({
+      submissao_idSubmissao: req.params.id,
+      destinatario: emailAluno,
+      assunto,
+      corpo
+    });
+
+    res.json({ message: 'Status atualizado e email enviado' });
+
+  } catch (err) {
+    console.error('Erro:', err.message);
+    res.status(500).json({ message: 'Erro interno', error: err.message });
+  }
 };
 
 exports.remove = async (req, res) => {
   await Submissao.delete(req.params.id);
-  res.json({ message: 'Removido' });
+  res.json({ message: 'Removido' }); 
 };

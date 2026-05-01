@@ -1,3 +1,4 @@
+require('./database/db');
 const express = require('express');
 const morgan = require('morgan');
 const swaggerUi = require('swagger-ui-express');

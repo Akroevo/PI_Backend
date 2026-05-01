@@ -1,6 +1,8 @@
 const Submissao = require('../models/submissaoModel');
 const Notificacao = require('../models/notificacaoModel');
+const Certificado = require('../models/certificadoModel');
 const nodemailer = require('nodemailer');
+
 
 
 const transporter = nodemailer.createTransport({
@@ -66,6 +68,16 @@ exports.updateStatus = async (req, res) => {
       assunto,
       corpo
     });
+
+    if (status === 'aprovada') {
+      await Certificado.create({
+        submissao_idSubmissao: req.params.id,
+        nomeArquivo: `certificado_${req.params.id}.pdf`,
+        caminhoArquivo: `/certificados/certificado_${req.params.id}.pdf`,
+        textoOCR: null
+      });
+      console.log('Certificado gerado!');
+    }
 
     res.json({ message: 'Status atualizado e email enviado' });
 

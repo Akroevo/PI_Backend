@@ -1,6 +1,7 @@
 const Submissao = require('../models/submissaoModel');
 const Notificacao = require('../models/notificacaoModel');
 const Certificado = require('../models/certificadoModel');
+const db = require('../database/db');
 const nodemailer = require('nodemailer');
 
 
@@ -70,15 +71,27 @@ exports.updateStatus = async (req, res) => {
     });
 
     if (status === 'aprovada') {
-      await Certificado.create({
-        submissao_idSubmissao: req.params.id,
-        nomeArquivo: `certificado_${req.params.id}.pdf`,
-        caminhoArquivo: `/certificados/certificado_${req.params.id}.pdf`,
-        textoOCR: null
-      });
-      console.log('Certificado gerado!');
-    }
+      const [atividade] = await db.query(
+    `SELECT a.cargaHorariaSolicitada, a.aluno_matricula 
+     FROM atividadecomplementar a
+     JOIN submissao s ON s.atividade_idAtividade = a.idAtividade
+     WHERE s.idSubmissao = ?`,
+    [req.params.id]
+  );
+  await db.query(
+    'UPDATE aluno SET cargaHorariaAcumulada = cargaHorariaAcumulada + ? WHERE matricula = ?',
+    [atividade[0].cargaHorariaSolicitada, atividade[0].aluno_matricula]
+  );
+  console.log('Carga horária acumulada atualizada!');
 
+    await Certificado.create({
+    submissao_idSubmissao: req.params.id,
+    nomeArquivo: `certificado_${req.params.id}.pdf`,
+    caminhoArquivo: `/certificados/certificado_${req.params.id}.pdf`,
+    textoOCR: null
+  });
+  console.log('Certificado gerado!');
+ }
     res.json({ message: 'Status atualizado e email enviado' });
 
   } catch (err) {

@@ -1,4 +1,4 @@
-const SuperAdmin = require('../models/superadminModel');
+const SuperAdmin = require('../models/superAdminModel');
 
 exports.getAll = async (req, res) => {
   const [rows] = await SuperAdmin.findAll();

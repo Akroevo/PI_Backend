@@ -1,5 +1,5 @@
 const router = require('express').Router();
-const ctrl = require('../controllers/superadminController');
+const ctrl = require('../controllers/superAdminController');
 const { autorizar } = require('../middlewares/auth');
 
 router.get('/',                   autorizar('superadmin'), ctrl.getAll);

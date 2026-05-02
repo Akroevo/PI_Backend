@@ -20,6 +20,6 @@ app.use('/api/coordenadores', require('./routes/coordenadorRoute'));
 app.use('/api/submissoes',    require('./routes/submissaoRoutes'));
 app.use('/api/certificados',  require('./routes/certificadoRoutes'));
 app.use('/api/notificacoes',  require('./routes/notificacaoRoutes'));
-app.use('/api/superadmins',   require('./routes/superadminRoutes'));
+app.use('/api/superadmins', require('./routes/superAdminRoutes'));
 
 module.exports = app;

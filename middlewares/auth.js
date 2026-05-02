@@ -1,27 +1,34 @@
+const jwt = require('jsonwebtoken');
+
 exports.autorizar = (...perfis) => (req, res, next) => {
-  const tipo = req.headers['perfil'];
-  if (!tipo) return res.status(401).json({ message: 'Perfil não informado' });
-  if (!perfis.includes(tipo)) return res.status(403).json({ message: 'Acesso negado' });
-  req.usuario = {
-    tipo_usuario: tipo,
-    idusuario: req.headers['userid'],
-    matricula: req.headers['matricula'] || null
-  };
-  next();
+  const authHeader = req.headers['authorization'];
+  if (!authHeader) return res.status(401).json({ message: 'Token não informado' });
+
+  const token = authHeader.split(' ')[1]; 
+  if (!token) return res.status(401).json({ message: 'Token inválido' });
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    req.usuario = decoded;
+    if (!perfis.includes(decoded.tipo_usuario)) {
+      return res.status(403).json({ message: 'Acesso negado' });
+    }
+    next();
+  } catch (err) {
+    return res.status(401).json({ message: 'Token expirado ou inválido' });
+  }
 };
 
 exports.apenasProprioAluno = (req, res, next) => {
-  const tipo = req.headers['perfil'];
-  const matricula = req.headers['matricula'];
-  if (tipo === 'superadmin' || tipo === 'coordenador') return next();
+  const { tipo_usuario, matricula } = req.usuario;
+  if (tipo_usuario === 'superadmin' || tipo_usuario === 'coordenador') return next();
   if (String(matricula) === String(req.params.matricula)) return next();
   return res.status(403).json({ message: 'Acesso negado ao recurso de outro aluno' });
 };
 
 exports.apenasProprioUsuario = (req, res, next) => {
-  const tipo = req.headers['perfil'];
-  const id   = req.headers['userid'];
-  if (tipo === 'superadmin') return next();
-  if (String(id) === String(req.params.id)) return next();
+  const { tipo_usuario, idusuario } = req.usuario;
+  if (tipo_usuario === 'superadmin') return next();
+  if (String(idusuario) === String(req.params.id)) return next();
   return res.status(403).json({ message: 'Acesso negado' });
 };

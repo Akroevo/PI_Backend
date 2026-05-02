@@ -2,6 +2,7 @@ const router = require('express').Router();
 const ctrl = require('../controllers/coordenadorController');
 const { autorizar } = require('../middlewares/auth');
 
+
 router.get('/',    autorizar('superadmin'), ctrl.getAll);
 router.get('/:id', autorizar('superadmin'), ctrl.getById);
 router.post('/',   autorizar('superadmin'), ctrl.create);

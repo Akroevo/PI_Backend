@@ -32,7 +32,8 @@ CREATE TABLE curso (
   nome VARCHAR(100),
   tipoCurso ENUM('EAD', 'Presencial', 'Hibrido'),
   cargaHorariaTotal INT,
-  categoria VARCHAR(45)
+  categoria VARCHAR(45),
+  turno ENUM('Manha', 'Tarde', 'Noite')
 );
 
 -- ALUNO_CURSO

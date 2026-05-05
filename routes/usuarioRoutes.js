@@ -1,12 +1,12 @@
 const router = require('express').Router();
 const ctrl = require('../controllers/usuarioController');
-//const { autorizar, apenasProprioUsuario } = require('../middlewares/auth');
+const { autorizar, apenasProprioUsuario } = require('../middlewares/auth');
 
-router.get('/',     ctrl.getAll);
-router.get('/:id',  ctrl.getById);
-router.post('/',    ctrl.create);
-router.put('/:id',  ctrl.update);
-router.delete('/:id', ctrl.remove);
+router.get('/',    autorizar('superadmin'), ctrl.getAll);
+router.get('/:id',  autorizar('superadmin'), ctrl.getById);
+router.post('/',   autorizar('superadmin'), ctrl.create);
+router.put('/:id', autorizar('superadmin'), ctrl.update);
+router.delete('/:id', autorizar('superadmin'), ctrl.remove);
 
 
 //router.put('/:id/senha', apenasProprioUsuario, ctrl.updateSenha);

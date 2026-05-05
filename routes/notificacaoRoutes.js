@@ -7,6 +7,6 @@ router.get('/submissao/:idSubmissao', autorizar('superadmin', 'coordenador'), ct
 router.get('/destinatario/:email',    autorizar('superadmin', 'coordenador'), ctrl.getByDestinatario);
 router.get('/:id',                    autorizar('superadmin', 'coordenador'), ctrl.getById);
 router.post('/',                      autorizar('superadmin', 'coordenador'), ctrl.create);
-router.delete('/:id',                 autorizar('superadmin'), ctrl.remove);
+router.delete('/:id',                 autorizar('superadmin','coordenador'), ctrl.remove);
 
 module.exports = router;

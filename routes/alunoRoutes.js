@@ -8,11 +8,11 @@ router.put('/:matricula',    autorizar('superadmin', 'coordenador'), ctrl.update
 router.delete('/:matricula', autorizar('superadmin', 'coordenador'), ctrl.remove);
 
 
-router.get('/:matricula', apenasProprioAluno, ctrl.getById);
+router.get('/:matricula',   apenasProprioAluno, ctrl.getById);
 
 
-router.get('/:matricula/cursos',             apenasProprioAluno, ctrl.getCursos);
-router.post('/:matricula/cursos',            autorizar('superadmin'), ctrl.addCurso);
+router.get('/:matricula/cursos',        apenasProprioAluno, ctrl.getCursos);
+router.post('/:matricula/cursos',            autorizar('superadmin','coordenador'), ctrl.addCurso);
 router.delete('/:matricula/cursos/:idCurso', autorizar('superadmin'), ctrl.removeCurso);
 
 module.exports = router;

@@ -16,7 +16,7 @@ CREATE TABLE usuario (
 
 -- ALUNO
 CREATE TABLE aluno (
-  matricula INT AUTO_INCREMENT PRIMARY KEY,
+  matricula VARCHAR(10) NOT NULL UNIQUE PRIMARY KEY,
   nome VARCHAR(100) NOT NULL,
   dataEntrada DATE NOT NULL,
   cargaHorariaAcumulada INT DEFAULT 0,
@@ -38,7 +38,7 @@ CREATE TABLE curso (
 
 -- ALUNO_CURSO
 CREATE TABLE aluno_curso (
-  aluno_matricula INT,
+  aluno_matricula VARCHAR(10),
   curso_idCurso INT,
   PRIMARY KEY (aluno_matricula, curso_idCurso),
   FOREIGN KEY (aluno_matricula) REFERENCES aluno(matricula) ON DELETE CASCADE,
@@ -64,7 +64,7 @@ CREATE TABLE atividadecomplementar (
   titulo VARCHAR(100),
   descricao VARCHAR(200),
   cargaHorariaSolicitada INT,
-  aluno_matricula INT,
+  aluno_matricula VARCHAR(10),
   regra_idRegra INT,
   FOREIGN KEY (aluno_matricula) REFERENCES aluno(matricula) ON DELETE CASCADE,
   FOREIGN KEY (regra_idRegra) REFERENCES regrasdocurso(idRegra) ON DELETE CASCADE

@@ -13,7 +13,7 @@ exports.getById = async (req, res) => {
 
 exports.create = async (req, res) => {
   const [result] = await Aluno.create(req.body);
-  res.status(201).json({ matricula: result.insertId });
+  res.status(201).json({ message: 'Aluno criado com sucesso' });
 };
 
 exports.update = async (req, res) => {

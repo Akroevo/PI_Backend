@@ -1,13 +1,30 @@
 const db = require('../database/db');
 
+function gerarMatricula() {
+  const numeros = Math.floor(Math.random() * 9000000000) + 1000000000;
+  return String(numeros);
+}
+
+
 const Aluno = {
   findAll: () => db.query('SELECT * FROM aluno'),
   findById: (mat) =>
     db.query('SELECT * FROM aluno WHERE matricula = ?', [mat]),
-  create: (data) => db.query(
-    'INSERT INTO aluno (nome, dataEntrada, cargaHorariaAcumulada, usuario_idusuario) VALUES (?,?,?,?)',
-    [data.nome, data.dataEntrada, data.cargaHorariaAcumulada || 0, data.usuario_idusuario]
-  ),
+  create: async (data) => {
+    let matricula;
+    let existe = true;
+
+    while (existe) {
+      matricula = gerarMatricula();
+      const [rows] = await db.query('SELECT matricula FROM aluno WHERE matricula = ?', [matricula]);
+      existe = rows.length > 0;
+    }
+
+    return db.query(
+      'INSERT INTO aluno (matricula, nome, dataEntrada, cargaHorariaAcumulada, usuario_idusuario) VALUES (?,?,?,?,?)',
+      [matricula, data.nome, data.dataEntrada, data.cargaHorariaAcumulada || 0, data.usuario_idusuario]
+    );
+  },
   update: (mat, data) => db.query(
     'UPDATE aluno SET nome=?, cargaHorariaAcumulada=? WHERE matricula=?',
     [data.nome, data.cargaHorariaAcumulada, mat]

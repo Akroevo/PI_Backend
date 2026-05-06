@@ -12,7 +12,7 @@ exports.getById = async (req, res) => {
 };
 
 exports.create = async (req, res) => {
-  const [result] = await Aluno.create(req.body);
+  await Aluno.create(req.body);
   res.status(201).json({ message: 'Aluno criado com sucesso' });
 };
 

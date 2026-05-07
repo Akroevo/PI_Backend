@@ -1,40 +1,58 @@
-exports.login = async (req, res) => {
-  try {
-    const { email, senha } = req.body;
+const Coordenador = require('../models/coordenadorModel');
 
-    const [rows] = await db.query('SELECT * FROM usuario WHERE email = ?', [email]);
-    if (!rows.length) return res.status(401).json({ message: 'Email ou senha inválidos' });
+exports.getAll = async (req, res) => {
+  const [rows] = await Coordenador.findAll();
+  res.json(rows);
+};
 
-    const usuario = rows[0];
+exports.getById = async (req, res) => {
+  const [rows] = await Coordenador.findById(req.params.id);
+  if (!rows.length) return res.status(404).json({ message: 'Não encontrado' });
+  res.json(rows[0]);
+};
 
-    const senhaCorreta = await bcrypt.compare(senha, usuario.senha);
-    if (!senhaCorreta) return res.status(401).json({ message: 'Email ou senha inválidos' });
+exports.create = async (req, res) => {
+  const [result] = await Coordenador.create(req.body);
+  const idCoordenador = result.insertId;
 
-    // Busca idCoordenador se for coordenador
-    let idCoordenador = null;
-    if (usuario.tipo_usuario === 'coordenador') {
-      const [coord] = await db.query(
-        'SELECT idCoordenador FROM coordenador WHERE usuario_idusuario = ?',
-        [usuario.idusuario]
-      );
-      if (coord.length) idCoordenador = coord[0].idCoordenador;
+  if (req.body.cursos && req.body.cursos.length > 0) {
+    for (const idCurso of req.body.cursos) {
+      await Coordenador.addCurso(idCoordenador, idCurso);
     }
-
-    const token = jwt.sign(
-      {
-        idusuario: usuario.idusuario,
-        tipo_usuario: usuario.tipo_usuario,
-        email: usuario.email,
-        idCoordenador 
-      },
-      process.env.JWT_SECRET,
-      { expiresIn: '8h' }
-    );
-
-    res.json({ token, tipo_usuario: usuario.tipo_usuario });
-
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Erro interno', error: err.message });
   }
+
+  res.status(201).json({ id: idCoordenador });
+};
+
+exports.update = async (req, res) => {
+  await Coordenador.update(req.params.id, req.body);
+
+  if (req.body.cursos !== undefined) {
+    await Coordenador.removeTodosCursos(req.params.id);
+    for (const idCurso of req.body.cursos) {
+      await Coordenador.addCurso(req.params.id, idCurso);
+    }
+  }
+
+  res.json({ message: 'Atualizado' });
+};
+
+exports.remove = async (req, res) => {
+  await Coordenador.delete(req.params.id);
+  res.json({ message: 'Removido' });
+};
+
+exports.getCursos = async (req, res) => {
+  const [rows] = await Coordenador.getCursos(req.params.id);
+  res.json(rows);
+};
+
+exports.addCurso = async (req, res) => {
+  await Coordenador.addCurso(req.params.id, req.body.idCurso);
+  res.status(201).json({ message: 'Curso associado' });
+};
+
+exports.removeCurso = async (req, res) => {
+  await Coordenador.removeCurso(req.params.id, req.params.idCurso);
+  res.json({ message: 'Curso desassociado' });
 };

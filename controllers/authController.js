@@ -1,7 +1,3 @@
-const db = require('../database/db');
-const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
-
 exports.login = async (req, res) => {
   try {
     const { email, senha } = req.body;
@@ -29,7 +25,7 @@ exports.login = async (req, res) => {
         idusuario: usuario.idusuario,
         tipo_usuario: usuario.tipo_usuario,
         email: usuario.email,
-        idCoordenador
+        idCoordenador 
       },
       process.env.JWT_SECRET,
       { expiresIn: '8h' }

@@ -1,4 +1,5 @@
 const Aluno = require('../models/alunoModel');
+const db = require('../database/db');
 
 exports.getAll = async (req, res) => {
   const [rows] = await Aluno.findAll();
@@ -23,6 +24,13 @@ exports.create = async (req, res) => {
 
 exports.update = async (req, res) => {
   await Aluno.update(req.params.matricula, req.body);
+
+  if (req.body.email) {
+    const [rows] = await Aluno.findById(req.params.matricula);
+    if (rows.length && rows[0].usuario_idusuario) {
+      await db.query('UPDATE usuario SET email=? WHERE idusuario=?', [req.body.email, rows[0].usuario_idusuario]);
+    }
+  }
 
   if (req.body.cursos !== undefined) {
     await Aluno.removeTodosCursos(req.params.matricula);

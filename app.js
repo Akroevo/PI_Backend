@@ -10,7 +10,7 @@ const cors = require('cors');
 const app = express();
 
 app.use(cors({
-  origin: 'https://pifrontend.netlify.app',
+  origin: 'https://spheredu.otta12.workers.dev',
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));

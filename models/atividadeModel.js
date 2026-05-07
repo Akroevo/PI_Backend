@@ -1,5 +1,4 @@
 const db = require('../database/db');
-
 const Atividade = {
   findAll: () => db.query('SELECT * FROM atividadecomplementar'),
   findById: (id) =>
@@ -23,7 +22,12 @@ const Atividade = {
      data.cargaHorariaSolicitada, data.regra_idRegra, id]
   ),
   delete: (id) =>
-    db.query('DELETE FROM atividadecomplementar WHERE idAtividade = ?', [id])
+    db.query('DELETE FROM atividadecomplementar WHERE idAtividade = ?', [id]),
+  avaliar: (id, data) => db.query(
+    `UPDATE atividadecomplementar
+     SET status=?, cargaHorariaAprovada=?, observacao=?, coordenador_idCoordenador=?
+     WHERE idAtividade=?`,
+    [data.status, data.cargaHorariaAprovada, data.observacao, data.coordenador_idCoordenador, id]
+  )
 };
-
 module.exports = Atividade;

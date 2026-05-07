@@ -1,5 +1,5 @@
 const Coordenador = require('../models/coordenadorModel');
-const Atividade = require('../models/atividadeModel');
+const Submissao = require('../models/submissaoModel');
 
 exports.getAll = async (req, res) => {
   const [rows] = await Coordenador.findAll();
@@ -54,10 +54,32 @@ exports.removeCurso = async (req, res) => {
   res.json({ message: 'Curso desassociado' });
 };
 
-exports.avaliarAtividade = async (req, res) => {
-  const { idAtividade } = req.params;
-  const [atividade] = await Atividade.findById(idAtividade);
-  if (!atividade.length) return res.status(404).json({ message: 'Atividade não encontrada' });
-  await Atividade.avaliar(idAtividade, req.body);
-  res.json({ message: 'Atividade avaliada com sucesso' });
+exports.avaliarSubmissao = async (req, res) => {
+  try {
+    const { idSubmissao } = req.params;
+    const { status, observacao } = req.body;
+
+    if (!['aprovada', 'rejeitada'].includes(status)) {
+      return res.status(400).json({ message: 'Status inválido. Use "aprovada" ou "rejeitada".' });
+    }
+
+    const [submissao] = await Submissao.findById(idSubmissao);
+    if (!submissao.length) {
+      return res.status(404).json({ message: 'Submissão não encontrada' });
+    }
+
+    if (submissao[0].status !== 'pendente') {
+      return res.status(409).json({ message: 'Submissão já foi avaliada anteriormente.' });
+    }
+
+    await Submissao.avaliar(idSubmissao, {
+      status,
+      observacao: observacao || null,
+      idCoordenador: req.params.id,
+    });
+
+    res.json({ message: `Submissão ${status} com sucesso.` });
+  } catch (err) {
+    res.status(500).json({ message: 'Erro ao avaliar submissão', error: err.message });
+  }
 };

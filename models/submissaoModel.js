@@ -5,14 +5,9 @@ const Submissao = {
   findById: (id) =>
     db.query('SELECT * FROM submissao WHERE idSubmissao = ?', [id]),
   findByCoordenador: (idCoordenador) =>
-    db.query(
-      'SELECT * FROM submissao WHERE coordenador_idCoordenador = ?',
-      [idCoordenador]
-    ),
+    db.query('SELECT * FROM submissao WHERE coordenador_idCoordenador = ?', [idCoordenador]),
   findByAtividade: (idAtividade) =>
-    db.query('SELECT * FROM submissao WHERE atividade_idAtividade = ?', [
-      idAtividade
-    ]),
+    db.query('SELECT * FROM submissao WHERE atividade_idAtividade = ?', [idAtividade]),
   create: (data) =>
     db.query(
       `INSERT INTO submissao (atividade_idAtividade, coordenador_idCoordenador, dataEnvio, status, observacao)
@@ -24,6 +19,11 @@ const Submissao = {
         data.status || 'pendente',
         data.observacao || null
       ]
+    ),
+  avaliar: (id, { status, observacao, idCoordenador }) =>
+    db.query(
+      `UPDATE submissao SET status = ?, observacao = ?, coordenador_idCoordenador = ? WHERE idSubmissao = ?`,
+      [status, observacao ?? null, idCoordenador, id]
     ),
   updateStatus: (id, status, observacao) =>
     db.query(

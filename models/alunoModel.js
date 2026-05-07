@@ -1,3 +1,5 @@
+const db = require('../database/db');
+
 const Aluno = {
   findAll: () => db.query('SELECT * FROM aluno'),
   findById: (mat) =>

@@ -32,3 +32,10 @@ exports.apenasProprioUsuario = (req, res, next) => {
   if (String(idusuario) === String(req.params.id)) return next();
   return res.status(403).json({ message: 'Acesso negado' });
 };
+
+exports.apenasProprioCoordenador = (req, res, next) => {
+  const { tipo_usuario, idCoordenador } = req.usuario;
+  if (tipo_usuario === 'superadmin') return next();
+  if (String(idCoordenador) === String(req.params.id)) return next();
+  return res.status(403).json({ message: 'Acesso negado' });
+};

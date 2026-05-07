@@ -13,11 +13,27 @@ exports.getById = async (req, res) => {
 
 exports.create = async (req, res) => {
   const [result] = await Coordenador.create(req.body);
-  res.status(201).json({ id: result.insertId });
+  const idCoordenador = result.insertId;
+
+  if (req.body.cursos && req.body.cursos.length > 0) {
+    for (const idCurso of req.body.cursos) {
+      await Coordenador.addCurso(idCoordenador, idCurso);
+    }
+  }
+
+  res.status(201).json({ id: idCoordenador });
 };
 
 exports.update = async (req, res) => {
   await Coordenador.update(req.params.id, req.body);
+
+  if (req.body.cursos !== undefined) {
+    await Coordenador.removeTodosCursos(req.params.id);
+    for (const idCurso of req.body.cursos) {
+      await Coordenador.addCurso(req.params.id, idCurso);
+    }
+  }
+
   res.json({ message: 'Atualizado' });
 };
 

@@ -25,7 +25,9 @@ const Coordenador = {
   removeCurso: (id, idCurso) => db.query(
     'DELETE FROM coordenador_curso WHERE coordenador_idCoordenador=? AND curso_idCurso=?',
     [id, idCurso]
-  )
+  ),
+  removeTodosCursos: (id) =>
+    db.query('DELETE FROM coordenador_curso WHERE coordenador_idCoordenador = ?', [id])
 };
 
 module.exports = Coordenador;

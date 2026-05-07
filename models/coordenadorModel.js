@@ -1,7 +1,18 @@
 const db = require('../database/db');
 
 const Coordenador = {
-  findAll: () => db.query('SELECT * FROM coordenador'),
+  findAll: async () => {
+  const [coordenadores] = await db.query('SELECT * FROM coordenador');
+  for (const coord of coordenadores) {
+    const [cursos] = await db.query(
+      `SELECT c.* FROM curso c
+        JOIN coordenador_curso cc ON c.idCurso = cc.curso_idCurso
+        WHERE cc.coordenador_idCoordenador = ?`, [coord.idCoordenador]
+    );
+    coord.cursos = cursos;
+  }
+  return [coordenadores];
+},
   findById: (id) =>
     db.query('SELECT * FROM coordenador WHERE idCoordenador = ?', [id]),
   create: (data) => db.query(

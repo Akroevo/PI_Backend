@@ -1,9 +1,20 @@
 const db = require('../database/db');
 
+function gerarMatricula() {
+  const numeros = Math.floor(Math.random() * 9000000000) + 1000000000;
+  return String(numeros);
+}
+
 const Aluno = {
-  findAll: () => db.query('SELECT * FROM aluno'),
-  findById: (mat) =>
-    db.query('SELECT * FROM aluno WHERE matricula = ?', [mat]),
+  findAll: () => db.query(
+    `SELECT a.*, u.email FROM aluno a
+     LEFT JOIN usuario u ON u.idusuario = a.usuario_idusuario`
+  ),
+  findById: (mat) => db.query(
+    `SELECT a.*, u.email FROM aluno a
+     LEFT JOIN usuario u ON u.idusuario = a.usuario_idusuario
+     WHERE a.matricula = ?`, [mat]
+  ),
   create: async (data) => {
     let matricula;
     let existe = true;

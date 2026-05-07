@@ -1,4 +1,5 @@
 const Coordenador = require('../models/coordenadorModel');
+const Atividade = require('../models/atividadeModel');
 
 exports.getAll = async (req, res) => {
   const [rows] = await Coordenador.findAll();
@@ -14,26 +15,22 @@ exports.getById = async (req, res) => {
 exports.create = async (req, res) => {
   const [result] = await Coordenador.create(req.body);
   const idCoordenador = result.insertId;
-
   if (req.body.cursos && req.body.cursos.length > 0) {
     for (const idCurso of req.body.cursos) {
       await Coordenador.addCurso(idCoordenador, idCurso);
     }
   }
-
   res.status(201).json({ id: idCoordenador });
 };
 
 exports.update = async (req, res) => {
   await Coordenador.update(req.params.id, req.body);
-
   if (req.body.cursos !== undefined) {
     await Coordenador.removeTodosCursos(req.params.id);
     for (const idCurso of req.body.cursos) {
       await Coordenador.addCurso(req.params.id, idCurso);
     }
   }
-
   res.json({ message: 'Atualizado' });
 };
 
@@ -55,4 +52,12 @@ exports.addCurso = async (req, res) => {
 exports.removeCurso = async (req, res) => {
   await Coordenador.removeCurso(req.params.id, req.params.idCurso);
   res.json({ message: 'Curso desassociado' });
+};
+
+exports.avaliarAtividade = async (req, res) => {
+  const { idAtividade } = req.params;
+  const [atividade] = await Atividade.findById(idAtividade);
+  if (!atividade.length) return res.status(404).json({ message: 'Atividade não encontrada' });
+  await Atividade.avaliar(idAtividade, req.body);
+  res.json({ message: 'Atividade avaliada com sucesso' });
 };

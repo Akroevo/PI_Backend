@@ -1,11 +1,3 @@
-const db = require('../database/db');
-
-function gerarMatricula() {
-  const numeros = Math.floor(Math.random() * 9000000000) + 1000000000;
-  return String(numeros);
-}
-
-
 const Aluno = {
   findAll: () => db.query('SELECT * FROM aluno'),
   findById: (mat) =>
@@ -43,7 +35,9 @@ const Aluno = {
   removeCurso: (mat, idCurso) => db.query(
     'DELETE FROM aluno_curso WHERE aluno_matricula=? AND curso_idCurso=?',
     [mat, idCurso]
-  )
+  ),
+  removeTodosCursos: (mat) =>
+    db.query('DELETE FROM aluno_curso WHERE aluno_matricula = ?', [mat])
 };
 
 module.exports = Aluno;

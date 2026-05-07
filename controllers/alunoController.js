@@ -2,13 +2,18 @@ const Aluno = require('../models/alunoModel');
 
 exports.getAll = async (req, res) => {
   const [rows] = await Aluno.findAll();
-  res.json(rows);
+  const alunos = await Promise.all(rows.map(async (aluno) => {
+    const [cursos] = await Aluno.getCursos(aluno.matricula);
+    return { ...aluno, cursos };
+  }));
+  res.json(alunos);
 };
 
 exports.getById = async (req, res) => {
   const [rows] = await Aluno.findById(req.params.matricula);
   if (!rows.length) return res.status(404).json({ message: 'Não encontrado' });
-  res.json(rows[0]);
+  const [cursos] = await Aluno.getCursos(req.params.matricula);
+  res.json({ ...rows[0], cursos });
 };
 
 exports.create = async (req, res) => {

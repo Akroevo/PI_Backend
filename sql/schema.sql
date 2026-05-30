@@ -129,3 +129,12 @@ CREATE TABLE superadmin (
   usuario_idusuario INT UNIQUE,
   FOREIGN KEY (usuario_idusuario) REFERENCES usuario(idusuario) ON DELETE CASCADE
 );
+
+--- LOG
+CREATE TABLE log (
+  idLog INT AUTO_INCREMENT PRIMARY KEY,
+  timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+  level VARCHAR(10),
+  message TEXT,
+  meta JSON
+);

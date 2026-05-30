@@ -1,6 +1,6 @@
 const { createLogger, format, transports } = require('winston');
-
 const { combine, timestamp, printf, colorize } = format;
+const db = require('../database/db');
 
 const logFormat = printf(({ level, message, timestamp, ...meta }) => {
   const extra = Object.keys(meta).length ? JSON.stringify(meta) : '';
@@ -24,13 +24,9 @@ const logger = createLogger({
   ]
 });
 
-
 const logsEmMemoria = [];
 
-
-
-
-function registrarLog(level, message, meta = {}) {
+async function registrarLog(level, message, meta = {}) {
   const entrada = {
     timestamp: new Date().toISOString(),
     level,
@@ -40,6 +36,18 @@ function registrarLog(level, message, meta = {}) {
   logsEmMemoria.push(entrada);
   if (logsEmMemoria.length > 200) logsEmMemoria.shift();
   logger[level](message, meta);
+
+  try {
+    await db.query(
+      'INSERT INTO log (level, message, meta) VALUES (?, ?, ?)',
+      [level, message, JSON.stringify(meta)]
+    );
+    await db.query(
+      'DELETE FROM log WHERE timestamp < DATE_SUB(NOW(), INTERVAL 30 DAY)'
+    );
+  } catch (err) {
+    console.error('Erro ao salvar log no banco:', err.message);
+  }
 }
 
 module.exports = {

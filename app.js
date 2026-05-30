@@ -4,8 +4,9 @@ const morgan = require('morgan');
 const swaggerUi = require('swagger-ui-express');
 const swaggerSpec = require('./swagger');
 const { autorizar } = require('./middlewares/auth');
-const { logger, logsEmMemoria } = require('./middlewares/logger');
+const { logger } = require('./middlewares/logger');
 const cors = require('cors');
+const db = require('./database/db');
 
 const app = express();
 
@@ -33,8 +34,9 @@ app.use('/api/certificados',  require('./routes/certificadoRoutes'));
 app.use('/api/notificacoes',  require('./routes/notificacaoRoutes'));
 app.use('/api/superadmins',   require('./routes/superAdminRoutes'));
 
-app.get('/api/logs', autorizar('superadmin'), (req, res) => {
-  res.json(logsEmMemoria);
+app.get('/api/logs', autorizar('superadmin'), async (req, res) => {
+  const [rows] = await db.query('SELECT * FROM log ORDER BY timestamp DESC LIMIT 200');
+  res.json(rows);
 });
 
 module.exports = app;

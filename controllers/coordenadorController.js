@@ -9,11 +9,17 @@ exports.getAll = async (req, res) => {
  
 exports.getById = async (req, res) => {
   const [rows] = await Coordenador.findById(req.params.id);
-  if (!rows.length) return res.status(404).json({ message: 'Não encontrado' });
+  if (!rows || !rows.length) {
+    return res.status(404).json({ message: 'Coordenador não encontrado.' });
+  }
   res.json(rows[0]);
 };
  
 exports.create = async (req, res) => {
+  if (!req.body.nome || !req.body.usuario_idusuario) {
+    return res.status(400).json({ message: 'Campos obrigatórios ausentes.' });
+  }
+
   const [result] = await Coordenador.create(req.body);
   const idCoordenador = result.insertId;
   if (req.body.cursos?.length > 0) {
@@ -25,6 +31,11 @@ exports.create = async (req, res) => {
 };
  
 exports.update = async (req, res) => {
+  const [rows] = await Coordenador.findById(req.params.id);
+  if (!rows || !rows.length) {
+    return res.status(404).json({ message: 'Coordenador não encontrado para atualização.' });
+  }
+
   await Coordenador.update(req.params.id, req.body);
   if (req.body.cursos !== undefined) {
     await Coordenador.removeTodosCursos(req.params.id);
@@ -32,25 +43,49 @@ exports.update = async (req, res) => {
       await Coordenador.addCurso(req.params.id, idCurso);
     }
   }
-  res.json({ message: 'Atualizado' });
+  res.json({ message: 'Atualizado com sucesso' });
 };
  
 exports.remove = async (req, res) => {
+  const [rows] = await Coordenador.findById(req.params.id);
+  if (!rows || !rows.length) {
+    return res.status(404).json({ message: 'Coordenador não encontrado para remoção.' });
+  }
+
   await Coordenador.delete(req.params.id);
-  res.json({ message: 'Removido' });
+  res.json({ message: 'Removido com sucesso' });
 };
  
 exports.getCursos = async (req, res) => {
-  const [rows] = await Coordenador.getCursos(req.params.id);
-  res.json(rows);
+  const [rows] = await Coordenador.findById(req.params.id);
+  if (!rows || !rows.length) {
+    return res.status(404).json({ message: 'Coordenador não encontrado.' });
+  }
+
+  const [cursos] = await Coordenador.getCursos(req.params.id);
+  res.json(cursos);
 };
  
 exports.addCurso = async (req, res) => {
+  if (!req.body.idCurso) {
+    return res.status(400).json({ message: 'O ID do curso é obrigatório.' });
+  }
+
+  const [rows] = await Coordenador.findById(req.params.id);
+  if (!rows || !rows.length) {
+    return res.status(404).json({ message: 'Coordenador não encontrado.' });
+  }
+
   await Coordenador.addCurso(req.params.id, req.body.idCurso);
   res.status(201).json({ message: 'Curso associado' });
 };
  
 exports.removeCurso = async (req, res) => {
+  const [rows] = await Coordenador.findById(req.params.id);
+  if (!rows || !rows.length) {
+    return res.status(404).json({ message: 'Coordenador não encontrado.' });
+  }
+
   await Coordenador.removeCurso(req.params.id, req.params.idCurso);
   res.json({ message: 'Curso desassociado' });
 };
@@ -65,7 +100,7 @@ exports.avaliarSubmissao = async (req, res) => {
     }
  
     const [rows] = await Submissao.findById(idSubmissao);
-    if (!rows.length) {
+    if (!rows || !rows.length) {
       return res.status(404).json({ message: 'Submissão não encontrada.' });
     }
  
@@ -78,8 +113,6 @@ exports.avaliarSubmissao = async (req, res) => {
     return submissaoController.updateStatus(req, res);
  
   } catch (err) {
-    console.error('Erro avaliarSubmissao:', err.message);
-    res.status(500).json({ message: 'Erro ao avaliar submissão', error: err.message });
+    res.status(500).json({ message: 'Erro interno ao avaliar submissão.' });
   }
 };
- 

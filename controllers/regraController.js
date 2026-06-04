@@ -1,6 +1,4 @@
 const Regra = require('../models/regraModel');
-const AppError = require('../utils/AppError');
-const errorCatalog = require('../utils/errorCatalog');
 
 exports.getAll = async (req, res) => {
   const [rows] = await Regra.findAll();
@@ -11,7 +9,7 @@ exports.getById = async (req, res) => {
   const [rows] = await Regra.findById(req.params.id);
   
   if (!rows || !rows.length) {
-    throw new AppError('Regra não encontrada.', 404, 'ERR_REGRA_NOT_FOUND');
+    return res.status(404).json({ message: 'Regra não encontrada.' });
   }
   
   res.json(rows);
@@ -19,7 +17,7 @@ exports.getById = async (req, res) => {
 
 exports.getByCurso = async (req, res) => {
   if (!req.params.idCurso) {
-    throw new AppError('O ID do curso é obrigatório.', 400, 'ERR_INVALID_INPUT');
+    return res.status(400).json({ message: 'O ID do curso é obrigatório.' });
   }
 
   const [rows] = await Regra.findByCurso(req.params.idCurso);
@@ -28,7 +26,7 @@ exports.getByCurso = async (req, res) => {
 
 exports.create = async (req, res) => {
   if (!req.body.nome || !req.body.descricao) { 
-    throw new AppError('Campos obrigatórios ausentes.', 400, 'ERR_VALIDATION_FAILED');
+    return res.status(400).json({ message: 'Campos obrigatórios ausentes.' });
   }
 
   const [result] = await Regra.create(req.body);
@@ -38,7 +36,7 @@ exports.create = async (req, res) => {
 exports.update = async (req, res) => {
   const [rows] = await Regra.findById(req.params.id);
   if (!rows || !rows.length) {
-    throw new AppError('Regra não encontrada para atualização.', 404, 'ERR_REGRA_NOT_FOUND');
+    return res.status(404).json({ message: 'Regra não encontrada para atualização.' });
   }
 
   await Regra.update(req.params.id, req.body);
@@ -48,7 +46,7 @@ exports.update = async (req, res) => {
 exports.remove = async (req, res) => {
   const [rows] = await Regra.findById(req.params.id);
   if (!rows || !rows.length) {
-    throw new AppError('Regra não encontrada para remoção.', 404, 'ERR_REGRA_NOT_FOUND');
+    return res.status(404).json({ message: 'Regra não encontrada para remoção.' });
   }
 
   await Regra.delete(req.params.id);

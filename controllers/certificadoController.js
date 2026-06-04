@@ -1,58 +1,87 @@
 const Certificado = require('../models/certificadoModel');
 
-const erroInterno = (res, err) => {
-  console.error('Erro certificadoController:', err.message);
-  res.status(500).json({ message: 'Erro interno', error: err.message });
-};
-
 exports.getAll = async (req, res) => {
   try {
     const [rows] = await Certificado.findAll();
     res.json(rows);
-  } catch (err) { erroInterno(res, err); }
+  } catch (err) {
+    res.status(500).json({ message: 'Erro interno no servidor.' });
+  }
 };
 
 exports.getById = async (req, res) => {
   try {
     const [rows] = await Certificado.findById(req.params.id);
-    if (!rows.length) return res.status(404).json({ message: 'Certificado não encontrado.' });
-    res.json(rows[0]);
-  } catch (err) { erroInterno(res, err); }
+    if (!rows || !rows.length) {
+      return res.status(404).json({ message: 'Certificado não encontrado.' });
+    }
+    res.json(rows);
+  } catch (err) {
+    res.status(500).json({ message: 'Erro interno no servidor.' });
+  }
 };
 
 exports.getBySubmissao = async (req, res) => {
   try {
     const [rows] = await Certificado.findBySubmissao(req.params.idSubmissao);
-    if (!rows.length) return res.status(404).json({ message: 'Nenhum certificado para esta submissão.' });
-    res.json(rows[0]);
-  } catch (err) { erroInterno(res, err); }
+    if (!rows || !rows.length) {
+      return res.status(404).json({ message: 'Nenhum certificado encontrado para esta submissão.' });
+    }
+    res.json(rows);
+  } catch (err) {
+    res.status(500).json({ message: 'Erro interno no servidor.' });
+  }
 };
 
 exports.getByAluno = async (req, res) => {
   try {
     const [rows] = await Certificado.findByAluno(req.params.idAluno);
-    if (!rows.length) return res.status(404).json({ message: 'Nenhum certificado encontrado para este aluno.' });
+    if (!rows || !rows.length) {
+      return res.status(404).json({ message: 'Nenhum certificado encontrado para este aluno.' });
+    }
     res.json(rows);
-  } catch (err) { erroInterno(res, err); }
+  } catch (err) {
+    res.status(500).json({ message: 'Erro interno no servidor.' });
+  }
 };
 
 exports.create = async (req, res) => {
   try {
+    if (!req.body.submissao_idSubmissao || !req.body.caminhoArquivo) {
+      return res.status(400).json({ message: 'Campos obrigatórios ausentes.' });
+    }
+
     const [result] = await Certificado.create(req.body);
     res.status(201).json({ id: result.insertId });
-  } catch (err) { erroInterno(res, err); }
+  } catch (err) {
+    res.status(500).json({ message: 'Erro interno no servidor.' });
+  }
 };
 
 exports.update = async (req, res) => {
   try {
+    const [rows] = await Certificado.findById(req.params.id);
+    if (!rows || !rows.length) {
+      return res.status(404).json({ message: 'Certificado não encontrado para atualização.' });
+    }
+
     await Certificado.update(req.params.id, req.body);
-    res.json({ message: 'Atualizado' });
-  } catch (err) { erroInterno(res, err); }
+    res.json({ message: 'Atualizado com sucesso' });
+  } catch (err) {
+    res.status(500).json({ message: 'Erro interno no servidor.' });
+  }
 };
 
 exports.remove = async (req, res) => {
   try {
+    const [rows] = await Certificado.findById(req.params.id);
+    if (!rows || !rows.length) {
+      return res.status(404).json({ message: 'Certificado não encontrado para remoção.' });
+    }
+
     await Certificado.delete(req.params.id);
-    res.json({ message: 'Removido' });
-  } catch (err) { erroInterno(res, err); }
+    res.json({ message: 'Removido com sucesso' });
+  } catch (err) {
+    res.status(500).json({ message: 'Erro interno no servidor.' });
+  }
 };

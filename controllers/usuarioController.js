@@ -1,38 +1,49 @@
 const Usuario = require('../models/usuarioModel');
-const bcrypt = require('bcrypt');
+
+const erroInterno = (res, err) => {
+  console.error('Erro usuarioController:', err.message);
+  res.status(500).json({ message: 'Erro interno', error: err.message });
+};
 
 exports.getAll = async (req, res) => {
-  const [rows] = await Usuario.findAll();
-  res.json(rows);
+  try {
+    const [rows] = await Usuario.findAll();
+    res.json(rows);
+  } catch (err) { erroInterno(res, err); }
 };
 
 exports.getById = async (req, res) => {
-  const [rows] = await Usuario.findById(req.params.id);
-  if (!rows.length) return res.status(404).json({ message: 'Não encontrado' });
-  res.json(rows[0]);
+  try {
+    const [rows] = await Usuario.findById(req.params.id);
+    if (!rows.length) return res.status(404).json({ message: 'Usuário não encontrado.' });
+    res.json(rows[0]);
+  } catch (err) { erroInterno(res, err); }
 };
 
 exports.create = async (req, res) => {
   try {
     const [result] = await Usuario.create(req.body);
     res.status(201).json({ id: result.insertId });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Erro ao cadastrar usuário' });
-  }
+  } catch (err) { erroInterno(res, err); }
 };
 
 exports.update = async (req, res) => {
-  await Usuario.update(req.params.id, req.body);
-  res.json({ message: 'Atualizado' });
+  try {
+    await Usuario.update(req.params.id, req.body);
+    res.json({ message: 'Atualizado' });
+  } catch (err) { erroInterno(res, err); }
 };
 
 exports.updateSenha = async (req, res) => {
-  await Usuario.updateSenha(req.params.id, req.body.senha);
-  res.json({ message: 'Senha atualizada' });
+  try {
+    await Usuario.updateSenha(req.params.id, req.body.senha);
+    res.json({ message: 'Senha atualizada' });
+  } catch (err) { erroInterno(res, err); }
 };
 
 exports.remove = async (req, res) => {
-  await Usuario.delete(req.params.id);
-  res.json({ message: 'Removido' });
+  try {
+    await Usuario.delete(req.params.id);
+    res.json({ message: 'Removido' });
+  } catch (err) { erroInterno(res, err); }
 };

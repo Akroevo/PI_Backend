@@ -1,4 +1,7 @@
 const Curso = require('../models/cursoModel');
+const AppError = require('../utils/AppError');
+const errorCatalog = require('../utils/errorCatalog');
+
 const tiposValidos = ['EAD', 'Presencial', 'Hibrido'];
 const turnosValidos = ['Manha', 'Tarde', 'Noite'];
 
@@ -9,18 +12,27 @@ exports.getAll = async (req, res) => {
 
 exports.getById = async (req, res) => {
   const [rows] = await Curso.findById(req.params.id);
-  if (!rows.length) return res.status(404).json({ message: 'Não encontrado' });
-  res.json(rows[0]);
+  
+  if (!rows || !rows.length) {
+    throw new AppError('Curso não encontrado.', 404, 'ERR_CURSO_NOT_FOUND');
+  }
+  
+  res.json(rows);
 };
 
 exports.create = async (req, res) => {
-  const { tipoCurso, turno } = req.body;
+  const { nome, tipoCurso, turno } = req.body;
+
+  if (!nome || !tipoCurso || !turno) {
+    throw new AppError('Campos obrigatórios ausentes.', 400, 'ERR_VALIDATION_FAILED');
+  }
 
   if (!tiposValidos.includes(tipoCurso)) {
-    return res.status(400).json({ message: `tipoCurso inválido. Use: ${tiposValidos.join(', ')}` });
+    throw new AppError(`tipoCurso inválido. Use: ${tiposValidos.join(', ')}`, 400, 'ERR_INVALID_COURSE_TYPE');
   }
+
   if (!turnosValidos.includes(turno)) {
-    return res.status(400).json({ message: `turno inválido. Use: ${turnosValidos.join(', ')}` });
+    throw new AppError(`turno inválido. Use: ${turnosValidos.join(', ')}`, 400, 'ERR_INVALID_COURSE_SHIFT');
   }
 
   const [result] = await Curso.create(req.body);
@@ -30,18 +42,29 @@ exports.create = async (req, res) => {
 exports.update = async (req, res) => {
   const { tipoCurso, turno } = req.body;
 
-  if (tipoCurso && !tiposValidos.includes(tipoCurso)) {
-    return res.status(400).json({ message: `tipoCurso inválido. Use: ${tiposValidos.join(', ')}` });
+  const [rows] = await Curso.findById(req.params.id);
+  if (!rows || !rows.length) {
+    throw new AppError('Curso não encontrado para atualização.', 404, 'ERR_CURSO_NOT_FOUND');
   }
+
+  if (tipoCurso && !tiposValidos.includes(tipoCurso)) {
+    throw new AppError(`tipoCurso inválido. Use: ${tiposValidos.join(', ')}`, 400, 'ERR_INVALID_COURSE_TYPE');
+  }
+
   if (turno && !turnosValidos.includes(turno)) {
-    return res.status(400).json({ message: `turno inválido. Use: ${turnosValidos.join(', ')}` });
+    throw new AppError(`turno inválido. Use: ${turnosValidos.join(', ')}`, 400, 'ERR_INVALID_COURSE_SHIFT');
   }
 
   await Curso.update(req.params.id, req.body);
-  res.json({ message: 'Atualizado' });
+  res.json({ message: 'Atualizado com sucesso' });
 };
 
 exports.remove = async (req, res) => {
+  const [rows] = await Curso.findById(req.params.id);
+  if (!rows || !rows.length) {
+    throw new AppError('Curso não encontrado para remoção.', 404, 'ERR_CURSO_NOT_FOUND');
+  }
+
   await Curso.delete(req.params.id);
-  res.json({ message: 'Removido' });
+  res.json({ message: 'Removido com sucesso' });
 };

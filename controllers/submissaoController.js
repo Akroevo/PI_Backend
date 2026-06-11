@@ -3,6 +3,13 @@ const Notificacao = require('../models/notificacaoModel');
 const Certificado = require('../models/certificadoModel');
 const db          = require('../database/db');
 const nodemailer  = require('nodemailer');
+const cloudinary  = require('cloudinary').v2;
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key:    process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
 const transporter = nodemailer.createTransport({
   host:   process.env.MAIL_HOST,
@@ -69,7 +76,20 @@ exports.getByAtividade = async (req, res) => {
 
 exports.create = async (req, res) => {
   try {
-    const [result] = await Submissao.create(req.body);
+    let urlCertificado = null;
+
+    if (req.file) {
+      const uploaded = await new Promise((resolve, reject) => {
+        const stream = cloudinary.uploader.upload_stream(
+          { folder: 'certificados', resource_type: 'auto' },
+          (error, result) => error ? reject(error) : resolve(result)
+        );
+        stream.end(req.file.buffer);
+      });
+      urlCertificado = uploaded.secure_url;
+    }
+
+    const [result] = await Submissao.create({ ...req.body, urlCertificado });
     const idSubmissao = result.insertId;
 
     const [[dados]] = await db.query(
@@ -104,7 +124,7 @@ exports.create = async (req, res) => {
       });
     }
 
-    res.status(201).json({ id: idSubmissao });
+    res.status(201).json({ id: idSubmissao, urlCertificado });
   } catch (err) {
     console.error('Erro create submissao:', err.message);
     res.status(500).json({ message: 'Erro interno', error: err.message });
@@ -169,10 +189,15 @@ exports.updateStatus = async (req, res) => {
         [atividade.cargaHorariaSolicitada, atividade.aluno_matricula]
       );
 
+      const [[submissao]] = await db.query(
+        'SELECT urlCertificado FROM submissao WHERE idSubmissao = ?',
+        [req.params.id]
+      );
+
       await Certificado.create({
         submissao_idSubmissao: req.params.id,
         nomeArquivo:           `certificado_${req.params.id}.pdf`,
-        caminhoArquivo:        `/certificados/certificado_${req.params.id}.pdf`,
+        caminhoArquivo:        submissao?.urlCertificado || `/certificados/certificado_${req.params.id}.pdf`,
         textoOCR:              null,
       });
     }

@@ -88,6 +88,7 @@ CREATE TABLE submissao (
   dataEnvio DATETIME,
   status ENUM('pendente','aprovada','rejeitada') DEFAULT 'pendente',
   observacao TEXT,
+  urlCertificado VARCHAR(500) NULL,
   FOREIGN KEY (atividade_idAtividade) REFERENCES atividadecomplementar(idAtividade) ON DELETE CASCADE,
   FOREIGN KEY (coordenador_idCoordenador) REFERENCES coordenador(idCoordenador) ON DELETE CASCADE
 );

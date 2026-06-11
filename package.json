@@ -20,7 +20,7 @@
     "sequelize": "^6.37.8",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1",
-    "winston": "^3.19.0"
+    "winston": "^3.19.0",
     "cloudinary": "^2.0.0",
     "multer": "^1.4.5"
   },

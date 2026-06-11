@@ -10,14 +10,15 @@ const Submissao = {
     db.query('SELECT * FROM submissao WHERE atividade_idAtividade = ?', [idAtividade]),
   create: (data) =>
     db.query(
-      `INSERT INTO submissao (atividade_idAtividade, coordenador_idCoordenador, dataEnvio, status, observacao)
-       VALUES (?,?,?,?,?)`,
+      `INSERT INTO submissao (atividade_idAtividade, coordenador_idCoordenador, dataEnvio, status, observacao, urlCertificado)
+       VALUES (?,?,?,?,?,?)`,
       [
         data.atividade_idAtividade,
         data.coordenador_idCoordenador,
         data.dataEnvio || null,
         data.status || 'pendente',
-        data.observacao || null
+        data.observacao || null,
+        data.urlCertificado || null,
       ]
     ),
   avaliar: (id, { status, observacao, idCoordenador }) =>

@@ -54,24 +54,44 @@ function emailParaAluno(status, nomeAluno, observacao) {
 }
 
 exports.getAll = async (req, res) => {
-  const [rows] = await Submissao.findAll();
-  res.json(rows);
+  try {
+    const [rows] = await Submissao.findAll();
+    res.json(rows);
+  } catch (err) {
+    console.error('Erro getAll submissao:', err.message);
+    res.status(500).json({ message: 'Erro interno', error: err.message });
+  }
 };
 
 exports.getById = async (req, res) => {
-  const [rows] = await Submissao.findById(req.params.id);
-  if (!rows.length) return res.status(404).json({ message: 'Não encontrado' });
-  res.json(rows[0]);
+  try {
+    const [rows] = await Submissao.findById(req.params.id);
+    if (!rows.length) return res.status(404).json({ message: 'Não encontrado' });
+    res.json(rows[0]);
+  } catch (err) {
+    console.error('Erro getById submissao:', err.message);
+    res.status(500).json({ message: 'Erro interno', error: err.message });
+  }
 };
 
 exports.getByCoordenador = async (req, res) => {
-  const [rows] = await Submissao.findByCoordenador(req.params.idCoordenador);
-  res.json(rows);
+  try {
+    const [rows] = await Submissao.findByCoordenador(req.params.idCoordenador);
+    res.json(rows);
+  } catch (err) {
+    console.error('Erro getByCoordenador submissao:', err.message);
+    res.status(500).json({ message: 'Erro interno', error: err.message });
+  }
 };
 
 exports.getByAtividade = async (req, res) => {
-  const [rows] = await Submissao.findByAtividade(req.params.idAtividade);
-  res.json(rows);
+  try {
+    const [rows] = await Submissao.findByAtividade(req.params.idAtividade);
+    res.json(rows);
+  } catch (err) {
+    console.error('Erro getByAtividade submissao:', err.message);
+    res.status(500).json({ message: 'Erro interno', error: err.message });
+  }
 };
 
 exports.create = async (req, res) => {
@@ -89,7 +109,25 @@ exports.create = async (req, res) => {
       urlCertificado = uploaded.secure_url;
     }
 
-    const [result] = await Submissao.create({ ...req.body, urlCertificado });
+    
+    const idAtividade = req.body.atividade_idAtividade;
+    const [[coordResult]] = await db.query(
+      `SELECT cc.coordenador_idCoordenador
+       FROM atividadecomplementar a
+       JOIN regrasdocurso r ON r.idRegra = a.regra_idRegra
+       JOIN coordenador_curso cc ON cc.curso_idCurso = r.curso_idCurso
+       WHERE a.idAtividade = ?
+       LIMIT 1`,
+      [idAtividade]
+    );
+
+    if (!coordResult) {
+      return res.status(400).json({ message: 'Nenhum coordenador encontrado para o curso desta atividade.' });
+    }
+
+    const coordenador_idCoordenador = coordResult.coordenador_idCoordenador;
+
+    const [result] = await Submissao.create({ ...req.body, coordenador_idCoordenador, urlCertificado });
     const idSubmissao = result.insertId;
 
     const [[dados]] = await db.query(
@@ -210,6 +248,11 @@ exports.updateStatus = async (req, res) => {
 };
 
 exports.remove = async (req, res) => {
-  await Submissao.delete(req.params.id);
-  res.json({ message: 'Removido' });
+  try {
+    await Submissao.delete(req.params.id);
+    res.json({ message: 'Removido' });
+  } catch (err) {
+    console.error('Erro remove submissao:', err.message);
+    res.status(500).json({ message: 'Erro interno', error: err.message });
+  }
 };

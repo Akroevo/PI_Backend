@@ -1,10 +1,20 @@
 const db = require('../database/db');
+
 const Atividade = {
   findAll: () => db.query('SELECT * FROM atividadecomplementar'),
+
   findById: (id) =>
     db.query('SELECT * FROM atividadecomplementar WHERE idAtividade = ?', [id]),
+
   findByAluno: (mat) =>
-    db.query('SELECT * FROM atividadecomplementar WHERE aluno_matricula = ?', [mat]),
+    db.query(
+      `SELECT a.*, s.status AS statusSubmissao, s.observacao, s.urlCertificado
+       FROM atividadecomplementar a
+       LEFT JOIN submissao s ON s.atividade_idAtividade = a.idAtividade
+       WHERE a.aluno_matricula = ?`,
+      [mat]
+    ),
+
   create: (data) => db.query(
     `INSERT INTO atividadecomplementar
       (codigo, titulo, descricao, cargaHorariaSolicitada,
@@ -13,6 +23,7 @@ const Atividade = {
     [data.codigo, data.titulo, data.descricao,
      data.cargaHorariaSolicitada, data.aluno_matricula, data.regra_idRegra]
   ),
+
   update: (id, data) => db.query(
     `UPDATE atividadecomplementar
      SET codigo=?, titulo=?, descricao=?,
@@ -21,8 +32,10 @@ const Atividade = {
     [data.codigo, data.titulo, data.descricao,
      data.cargaHorariaSolicitada, data.regra_idRegra, id]
   ),
+
   delete: (id) =>
     db.query('DELETE FROM atividadecomplementar WHERE idAtividade = ?', [id]),
+
   avaliar: (id, data) => db.query(
     `UPDATE atividadecomplementar
      SET status=?, cargaHorariaAprovada=?, observacao=?, coordenador_idCoordenador=?
@@ -30,4 +43,5 @@ const Atividade = {
     [data.status, data.cargaHorariaAprovada, data.observacao, data.coordenador_idCoordenador, id]
   )
 };
+
 module.exports = Atividade;

@@ -1,4 +1,4 @@
-# 🎓 SpherEdu
+# 🎓 SpherEdu — Backend
 
 Sistema desenvolvido como Projeto Integrador (PI) do SENAC, com foco na gestão de Atividades Complementares para instituições de ensino.
 
@@ -6,97 +6,127 @@ Sistema desenvolvido como Projeto Integrador (PI) do SENAC, com foco na gestão 
 
 ## 📌 Sobre o Projeto
 
-O SpherEdu é uma aplicação web com suporte a PWA (Progressive Web App) que permite o gerenciamento de atividades complementares de forma prática e organizada.
-
-O sistema possibilita que alunos registrem suas atividades, enquanto coordenadores e administradores podem validar, editar e acompanhar essas informações.
+O SpherEdu é uma API REST que serve de base para o sistema de gerenciamento de atividades complementares. Permite que alunos registrem atividades, coordenadores validem e administradores gerenciem todo o sistema.
 
 ---
 
 ## 🚀 Tecnologias Utilizadas
 
-- JavaScript
-- Node.js
-- MySQL
-- SQL
-- PWA (Progressive Web App)
+- Node.js + Express
+- MySQL (hospedado no Clever Cloud)
+- JWT (autenticação)
+- bcrypt (hash de senhas)
+- Resend (envio de e-mails)
+- Cloudinary (armazenamento de certificados)
+- Winston (logs em banco e console)
+- Swagger (documentação da API)
+- Deploy: Render
 
 ---
 
 ## 🧩 Funcionalidades
 
 ### 👨‍🎓 Aluno
-- Cadastro no sistema
-- Envio de atividades complementares
-- Acompanhamento do status das atividades
+- Cadastro com matrícula gerada automaticamente
+- Matrícula em um ou mais cursos simultaneamente
+- Envio de atividades complementares com certificado
+- Acompanhamento do status das submissões
+- Acúmulo de carga horária ao ter atividade aprovada
 
 ### 🧑‍🏫 Coordenador
-- Visualização das atividades dos alunos
-- Aprovação ou reprovação de atividades
-- Edição de registros
+- Visualização dos alunos vinculados aos seus cursos
+- Aprovação ou rejeição de atividades com observação
+- Notificação por e-mail ao aluno após avaliação
 
-### 🛠️ Administrador (SuperAdmin)
-- Gerenciamento completo do sistema
-- Cadastro e remoção de usuários
-- Controle total sobre atividades e permissões
+### 🛠️ SuperAdmin
+- Gerenciamento completo de usuários, alunos, coordenadores e cursos
+- Atribuição de cursos a alunos no cadastro ou edição
+- Controle total sobre regras, atividades e permissões
+- Acesso ao dashboard geral
 
 ---
 
 ## 🔐 Segurança
 
-- Senhas armazenadas com hash utilizando bcrypt
+- Senhas armazenadas com hash via bcrypt
+- Autenticação via JWT com expiração de 8h
 - Proteção contra SQL Injection com queries parametrizadas
-- Controle de acesso baseado em tipo de usuário
+- Controle de acesso por perfil (superadmin, coordenador, aluno)
 
 ---
 
 ## 🗄️ Banco de Dados
 
-O sistema utiliza MySQL, com estrutura relacional para:
+MySQL com as seguintes tabelas principais:
 
-- Usuários
-- Atividades
-- Controle de permissões
-
-As senhas são armazenadas de forma segura utilizando hash (VARCHAR(255)).
-
----
-
-## 📱 PWA (Progressive Web App)
-
-O SpherEdu pode ser instalado como aplicativo:
-
-- Funciona no navegador e como app
-- Interface responsiva
-- Melhor experiência para dispositivos móveis
+- `usuario` — credenciais de acesso
+- `aluno` — dados do aluno com matrícula única
+- `coordenador` — dados do coordenador
+- `curso` — cursos disponíveis
+- `aluno_curso` — relação N:N entre aluno e curso
+- `coordenador_curso` — relação N:N entre coordenador e curso
+- `regrasdocurso` — regras de carga horária por categoria
+- `atividadecomplementar` — atividades registradas pelos alunos
+- `submissao` — submissões para avaliação
+- `certificado` — certificados aprovados
+- `notificacao_email` — histórico de e-mails enviados
+- `log` — log de erros e eventos do sistema (retido por 30 dias)
 
 ---
 
-## 🎯 Objetivo
+## 📧 E-mail
 
-Facilitar o gerenciamento de atividades complementares em instituições de ensino, tornando o processo mais:
+O envio de e-mails utiliza a API do **Resend** (substitui SMTP que é bloqueado no Render free tier).
 
-- Organizado
-- Seguro
-- Acessível
+Variável necessária:
+```
+RESEND_API_KEY=re_xxxxxxxx
+```
+
+E-mails disparados automaticamente:
+- Ao coordenador quando um aluno submete uma atividade
+- Ao aluno quando a atividade é aprovada ou rejeitada
+
+---
+
+## ⚙️ Variáveis de Ambiente
+
+```
+DB_HOST=
+DB_USER=
+DB_PASS=
+DB_NAME=
+DB_PORT=
+JWT_SECRET=
+RESEND_API_KEY=
+CLOUDINARY_CLOUD_NAME=
+CLOUDINARY_API_KEY=
+CLOUDINARY_API_SECRET=
+```
+
+---
+
+## 📁 Estrutura do Projeto
+
+```
+├── controllers/   — lógica de cada recurso
+├── models/        — queries ao banco de dados
+├── routes/        — definição dos endpoints
+├── middlewares/   — autenticação e logs
+├── config/        — configuração do banco
+├── sql/           — schema do banco de dados
+└── server.js      — entrada da aplicação
+```
 
 ---
 
 ## 📚 Contexto Acadêmico
 
-Projeto desenvolvido como parte do Projeto Integrador (PI) do SENAC, com foco na aplicação prática de conceitos como:
-
-- Desenvolvimento backend
-- Banco de dados
-- Segurança de aplicações
-- Arquitetura de sistemas
+Projeto desenvolvido como parte do Projeto Integrador (PI) do SENAC — Análise e Desenvolvimento de Sistemas.
 
 ---
 
-## 👨‍💻 Desenvolvedor
-
-Projeto desenvolvido por alunos do SENAC como parte da formação acadêmica em Análise e Desenvolvimento de Sistemas.
-
-Grupo composto por:
+## 👨‍💻 Equipe
 
 - Daniel Cabral
 - Ian Gabriel
@@ -109,13 +139,3 @@ Grupo composto por:
 ## 📌 Status
 
 🚧 Em desenvolvimento / aprimoramento contínuo
-
----
-
-## 💡 Observação
-
-Este projeto tem fins educacionais, mas segue boas práticas utilizadas no mercado, como:
-
-- Estruturação em camadas (Model, Controller)
-- Uso de hash para senhas
-- Separação de responsabilidades

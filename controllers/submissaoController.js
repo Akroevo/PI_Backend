@@ -4,6 +4,7 @@ const Certificado = require('../models/certificadoModel');
 const db          = require('../database/db');
 const { Resend }  = require('resend');
 const cloudinary  = require('cloudinary').v2;
+const { ImageAnnotatorClient } = require('@google-cloud/vision');
 const { error: logError } = require('../middlewares/logger');
 
 cloudinary.config({
@@ -13,6 +14,27 @@ cloudinary.config({
 });
 
 const resend = new Resend(process.env.RESEND_API_KEY);
+
+const visionClient = new ImageAnnotatorClient({
+  credentials: JSON.parse(process.env.GOOGLE_VISION_KEY),
+});
+
+async function extrairTextoOCR(buffer) {
+  try {
+    const [result] = await visionClient.textDetection({ image: { content: buffer } });
+    const anotacoes = result.textAnnotations;
+    return anotacoes?.length ? anotacoes[0].description : null;
+  } catch (err) {
+    logError('Erro OCR: ' + err.message);
+    return null;
+  }
+}
+
+function extrairHorasDoTexto(texto) {
+  if (!texto) return null;
+  const match = texto.match(/(\d{1,4})\s*h(ora[s]?)?/i);
+  return match ? parseInt(match[1]) : null;
+}
 
 async function enviarERegistrarEmail({ destinatario, assunto, corpo, submissaoIdParaLog }) {
   try {
@@ -111,6 +133,8 @@ exports.getByAtividade = async (req, res) => {
 exports.create = async (req, res) => {
   try {
     let urlCertificado = null;
+    let textoOCR = null;
+    let horasOCR = null;
 
     if (req.file) {
       const uploaded = await new Promise((resolve, reject) => {
@@ -121,6 +145,9 @@ exports.create = async (req, res) => {
         stream.end(req.file.buffer);
       });
       urlCertificado = uploaded.secure_url;
+
+      textoOCR = await extrairTextoOCR(req.file.buffer);
+      horasOCR = extrairHorasDoTexto(textoOCR);
     }
 
     const idAtividade = req.body.atividade_idAtividade;
@@ -142,6 +169,13 @@ exports.create = async (req, res) => {
 
     const [result] = await Submissao.create({ ...req.body, coordenador_idCoordenador, urlCertificado });
     const idSubmissao = result.insertId;
+
+    await Certificado.create({
+      submissao_idSubmissao: idSubmissao,
+      nomeArquivo:           req.file?.originalname || `certificado_${idSubmissao}`,
+      caminhoArquivo:        urlCertificado || '',
+      textoOCR,
+    });
 
     const [[dados]] = await db.query(
       `SELECT
@@ -166,7 +200,7 @@ exports.create = async (req, res) => {
       });
     }
 
-    res.status(201).json({ id: idSubmissao, urlCertificado });
+    res.status(201).json({ id: idSubmissao, urlCertificado, textoOCR, horasOCR });
   } catch (err) {
     logError('Erro create submissao: ' + err.message);
     res.status(500).json({ message: 'Erro interno', error: err.message });
@@ -237,7 +271,7 @@ exports.updateStatus = async (req, res) => {
       await Certificado.create({
         submissao_idSubmissao: req.params.id,
         nomeArquivo:           `certificado_${req.params.id}.pdf`,
-        caminhoArquivo:        submissao?.urlCertificado || `/certificados/certificado_${req.params.id}.pdf`,
+        caminhoArquivo:        submissao?.urlCertificado || '',
         textoOCR:              null,
       });
     }

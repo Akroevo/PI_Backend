@@ -25,12 +25,22 @@ exports.login = async (req, res) => {
       if (coord.length) idCoordenador = coord[0].idCoordenador;
     }
 
+    let matricula = null;
+    if (tipoNormalizado === 'aluno') {
+      const [aluno] = await db.query(
+        'SELECT matricula FROM aluno WHERE usuario_idusuario = ?',
+        [usuario.idusuario]
+      );
+      if (aluno.length) matricula = aluno[0].matricula;
+    }
+
     const token = jwt.sign(
       {
         idusuario: usuario.idusuario,
         tipo_usuario: tipoNormalizado,
         email: usuario.email,
-        idCoordenador
+        idCoordenador,
+        matricula
       },
       process.env.JWT_SECRET,
       { expiresIn: '8h' }

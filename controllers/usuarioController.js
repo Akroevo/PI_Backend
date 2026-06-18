@@ -25,7 +25,12 @@ exports.create = async (req, res) => {
   try {
     const [result] = await Usuario.create(req.body);
     res.status(201).json({ id: result.insertId });
-  } catch (err) { erroInterno(res, err); }
+  } catch (err) {
+      if (err.code === 'ER_DUP_ENTRY') {
+      return res.status(409).json({ message: 'Este e-mail já está cadastrado.' });
+    }
+    erroInterno(res, err);
+  }
 };
 
 exports.update = async (req, res) => {

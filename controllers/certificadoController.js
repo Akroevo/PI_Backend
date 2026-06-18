@@ -39,11 +39,8 @@ exports.getBySubmissao = async (req, res) => {
 
 exports.getByAluno = async (req, res) => {
   try {
-    const [rows] = await Certificado.findByAluno(req.params.idAluno);
-    if (!rows || !rows.length) {
-      return res.status(404).json({ message: 'Nenhum certificado encontrado para este aluno.' });
-    }
-    res.json(rows);
+    const [rows] = await Certificado.findByAluno(req.params.matricula);
+    res.json(rows || []);
   } catch (err) {
     logError('Erro getByAluno certificado: ' + err.message);
     res.status(500).json({ message: 'Erro interno no servidor.' });

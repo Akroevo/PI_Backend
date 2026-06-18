@@ -8,7 +8,8 @@ const Atividade = {
 
   findByAluno: (mat) =>
     db.query(
-      `SELECT a.*, s.status AS statusSubmissao, s.observacao, s.urlCertificado
+      `SELECT a.*, s.idSubmissao, s.status AS statusSubmissao, s.observacao,
+              s.urlCertificado, s.dataEnvio, s.cargaHorariaAprovada
        FROM atividadecomplementar a
        LEFT JOIN submissao s ON s.atividade_idAtividade = a.idAtividade
        WHERE a.aluno_matricula = ?`,

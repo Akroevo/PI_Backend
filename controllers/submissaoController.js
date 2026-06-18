@@ -171,7 +171,7 @@ exports.create = async (req, res) => {
 
 exports.updateStatus = async (req, res) => {
   try {
-    const { status, observacao } = req.body;
+    const { status, observacao, horasAprovadas } = req.body;
 
     const statusPermitidos = ['aprovada', 'rejeitada', 'pendente'];
     if (!statusPermitidos.includes(status)) {
@@ -222,9 +222,16 @@ exports.updateStatus = async (req, res) => {
         [req.params.id]
       );
 
+      const horasFinais = horasAprovadas || atividade.cargaHorariaSolicitada;
+
+      await db.query(
+        'UPDATE submissao SET cargaHorariaAprovada = ? WHERE idSubmissao = ?',
+        [horasFinais, req.params.id]
+      );
+
       await db.query(
         'UPDATE aluno SET cargaHorariaAcumulada = cargaHorariaAcumulada + ? WHERE matricula = ?',
-        [atividade.cargaHorariaSolicitada, atividade.aluno_matricula]
+        [horasFinais, atividade.aluno_matricula]
       );
 
       const [[submissao]] = await db.query(

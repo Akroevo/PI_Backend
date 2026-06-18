@@ -4,7 +4,7 @@ const { autorizar } = require('../middlewares/auth');
 const multer  = require('multer');
 const upload  = multer({ storage: multer.memoryStorage() });
 
-router.get('/',                           autorizar('superadmin', 'coordenador'), ctrl.getAll);
+router.get('/', autorizar('superadmin', 'coordenador'), ctrl.getAll);
 router.get('/coordenador/:idCoordenador', autorizar('superadmin', 'coordenador'), ctrl.getByCoordenador);
 router.get('/atividade/:idAtividade',     autorizar('superadmin', 'coordenador'), ctrl.getByAtividade);
 router.get('/:id',                        autorizar('superadmin', 'coordenador'), ctrl.getById);

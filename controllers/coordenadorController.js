@@ -1,7 +1,8 @@
 const Coordenador = require('../models/coordenadorModel');
 const { error: logError } = require('../middlewares/logger');
-const Submissao   = require('../models/submissaoModel');
+const Submissao = require('../models/submissaoModel');
 const submissaoController = require('./submissaoController');
+const db = require('../database/db');
 
 exports.getAll = async (req, res) => {
   try {
@@ -29,6 +30,17 @@ exports.create = async (req, res) => {
     if (!req.body.nome || !req.body.usuario_idusuario) {
       return res.status(400).json({ message: 'Campos obrigatórios ausentes.' });
     }
+    const [existing] = await db.query(
+      'SELECT idCoordenador FROM coordenador WHERE usuario_idusuario = ?',
+      [req.body.usuario_idusuario]
+    );
+    if (existing.length) {
+      return res.status(409).json({ message: 'Já existe um coordenador para esse usuário.' });
+    }
+    await db.query(
+      'UPDATE usuario SET tipo_usuario = ? WHERE idusuario = ?',
+      ['coordenador', req.body.usuario_idusuario]
+    );
     const [result] = await Coordenador.create(req.body);
     const idCoordenador = result.insertId;
     if (req.body.cursos?.length > 0) {
@@ -114,20 +126,16 @@ exports.avaliarSubmissao = async (req, res) => {
   try {
     const { idSubmissao } = req.params;
     const { status, observacao } = req.body;
-
     if (!['aprovada', 'rejeitada'].includes(status)) {
       return res.status(400).json({ message: 'Status inválido. Use "aprovada" ou "rejeitada".' });
     }
-
     const [rows] = await Submissao.findById(idSubmissao);
     if (!rows || !rows.length) return res.status(404).json({ message: 'Submissão não encontrada.' });
-
     if (rows[0].status !== 'pendente') {
       return res.status(409).json({ message: 'Submissão já foi avaliada anteriormente.' });
     }
-
     req.params.id = idSubmissao;
-    req.body      = { status, observacao };
+    req.body = { status, observacao };
     return submissaoController.updateStatus(req, res);
   } catch (err) {
     logError('Erro avaliarSubmissao coordenador: ' + err.message);

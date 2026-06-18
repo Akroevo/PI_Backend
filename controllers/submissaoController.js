@@ -201,34 +201,38 @@ exports.create = async (req, res) => {
       textoOCR,
     });
 
-    const [[dados]] = await db.query(
-      `SELECT
-         al.nome                AS nomeAluno,
-         a.titulo               AS nomeAtividade,
-         c.email                AS emailCoordenador
-       FROM submissao s
-       JOIN atividadecomplementar a ON a.idAtividade     = s.atividade_idAtividade
-       JOIN aluno                al ON al.matricula      = a.aluno_matricula
-       JOIN coordenador           c ON c.idCoordenador   = s.coordenador_idCoordenador
-       WHERE s.idSubmissao = ?`,
-      [idSubmissao]
-    );
+  const [[dados]] = await db.query(
+  `SELECT
+     al.nome                AS nomeAluno,
+     a.titulo               AS nomeAtividade,
+     c.email                AS emailCoordenador
+   FROM submissao s
+   JOIN atividadecomplementar a ON a.idAtividade     = s.atividade_idAtividade
+   JOIN aluno                al ON al.matricula      = a.aluno_matricula
+   JOIN coordenador           c ON c.idCoordenador   = s.coordenador_idCoordenador
+   WHERE s.idSubmissao = ?`,
+  [idSubmissao]
+);
 
-    if (dados?.emailCoordenador) {
-      const { assunto, corpo } = emailParaCoordenador(dados.nomeAluno, dados.nomeAtividade);
-      await enviarERegistrarEmail({
-        destinatario: dados.emailCoordenador,
-        assunto,
-        corpo,
-        submissaoIdParaLog: idSubmissao,
-      });
-    }
+if (dados?.emailCoordenador) {
+  const { assunto, corpo } = emailParaCoordenador(
+    dados.nomeAluno,
+    dados.nomeAtividade,
+    urlCertificado
+  );
+  await enviarERegistrarEmail({
+    destinatario: dados.emailCoordenador,
+    assunto,
+    corpo,
+    submissaoIdParaLog: idSubmissao,
+  });
+}
 
-    res.status(201).json({ id: idSubmissao, urlCertificado, textoOCR, horasOCR });
-  } catch (err) {
-    logError('Erro create submissao: ' + err.message);
-    res.status(500).json({ message: 'Erro interno', error: err.message });
-  }
+res.status(201).json({ id: idSubmissao, urlCertificado, textoOCR, horasOCR });
+} catch (err) {
+  logError('Erro create submissao: ' + err.message);
+  res.status(500).json({ message: 'Erro interno', error: err.message });
+}
 };
 
 exports.updateStatus = async (req, res) => {
@@ -246,7 +250,7 @@ exports.updateStatus = async (req, res) => {
       `SELECT u.email, al.nome
        FROM submissao s
        JOIN atividadecomplementar a  ON a.idAtividade = s.atividade_idAtividade
-       JOIN aluno                 al ON al.matricula  = a.aluno_matricula
+       JOIN aluno                  al ON al.matricula = a.aluno_matricula
        JOIN usuario                u ON u.idusuario   = al.usuario_idusuario
        WHERE s.idSubmissao = ?`,
       [req.params.id]

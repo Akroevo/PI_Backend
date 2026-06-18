@@ -101,3 +101,27 @@ exports.removeCurso = async (req, res) => {
     res.status(500).json({ message: 'Erro interno', error: err.message });
   }
 };
+
+exports.getSemCurso = async (req, res) => {
+  try {
+    const [rows] = await Aluno.findSemCurso();
+    res.json(rows);
+  } catch (err) {
+    console.error('Erro getSemCurso aluno:', err.message);
+    res.status(500).json({ message: 'Erro interno', error: err.message });
+  }
+};
+
+exports.getAlunosByCoordenador = async (req, res) => {
+  try {
+    const [rows] = await Aluno.findByCoordenador(req.params.id);
+    const alunos = await Promise.all(rows.map(async (aluno) => {
+      const [cursos] = await Aluno.getCursos(aluno.matricula);
+      return { ...aluno, cursos };
+    }));
+    res.json(alunos);
+  } catch (err) {
+    console.error('Erro getAlunosByCoordenador:', err.message);
+    res.status(500).json({ message: 'Erro interno', error: err.message });
+  }
+};

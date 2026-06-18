@@ -2,7 +2,7 @@ const Submissao   = require('../models/submissaoModel');
 const Notificacao = require('../models/notificacaoModel');
 const Certificado = require('../models/certificadoModel');
 const db          = require('../database/db');
-const nodemailer  = require('nodemailer');
+const { Resend }  = require('resend');
 const cloudinary  = require('cloudinary').v2;
 const { error: logError } = require('../middlewares/logger');
 
@@ -12,23 +12,12 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-const transporter = nodemailer.createTransport({
-  host:   process.env.MAIL_HOST,
-  port:   Number(process.env.MAIL_PORT) || 587,
-  secure: process.env.MAIL_SECURE === 'true',
-  auth: {
-    user: process.env.MAIL_USER,
-    pass: process.env.MAIL_PASS,
-  },
-  connectionTimeout: 10000,
-  greetingTimeout: 10000,
-  socketTimeout: 10000,
-});
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 async function enviarERegistrarEmail({ destinatario, assunto, corpo, submissaoIdParaLog }) {
   try {
-    await transporter.sendMail({
-      from:    `"Sistema de Certificados" <${process.env.MAIL_USER}>`,
+    await resend.emails.send({
+      from:    'Sistema de Certificados <onboarding@resend.dev>',
       to:      destinatario,
       subject: assunto,
       html:    corpo,

@@ -48,13 +48,6 @@ exports.update = async (req, res) => {
       }
     }
 
-    if (req.body.cursos !== undefined) {
-      await Aluno.removeTodosCursos(req.params.matricula);
-      for (const idCurso of req.body.cursos) {
-        await Aluno.addCurso(req.params.matricula, idCurso);
-      }
-    }
-
     res.json({ message: 'Atualizado' });
   } catch (err) {
     console.error('Erro update aluno:', err.message);

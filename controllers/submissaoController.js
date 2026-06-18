@@ -52,19 +52,48 @@ async function enviarERegistrarEmail({ destinatario, assunto, corpo, submissaoId
   }
 }
 
-function emailParaCoordenador(nomeAluno, nomeAtividade) {
+function emailParaCoordenador(nomeAluno, nomeAtividade, urlCertificado) {
   return {
     assunto: `Nova submissão de certificado — ${nomeAluno}`,
     corpo: `
       <div style="font-family:sans-serif;max-width:600px;margin:0 auto;padding:32px">
         <h2 style="color:#378ADD">Nova submissão para avaliar</h2>
-        <p>O aluno <strong>${nomeAluno}</strong> enviou um certificado para a atividade <strong>${nomeAtividade}</strong>.</p>
-        <p>Acesse o sistema para aprovar ou rejeitar.</p>
-        <p style="color:#888;font-size:12px">Mensagem automática, não responda.</p>
+
+        <p>
+          O aluno <strong>${nomeAluno}</strong>
+          enviou um certificado para a atividade
+          <strong>${nomeAtividade}</strong>.
+        </p>
+
+        <p>
+          <a
+            href="${urlCertificado}"
+            target="_blank"
+            style="
+              background:#378ADD;
+              color:white;
+              padding:12px 20px;
+              text-decoration:none;
+              border-radius:6px;
+              display:inline-block;
+            "
+          >
+            Visualizar Certificado
+          </a>
+        </p>
+
+        <p>
+          Acesse o sistema para aprovar ou rejeitar a atividade.
+        </p>
+
+        <p style="color:#888;font-size:12px">
+          Mensagem automática, não responda.
+        </p>
       </div>
     `,
   };
 }
+
 
 function emailParaAluno(status, nomeAluno, observacao) {
   const aprovada = status === 'aprovada';

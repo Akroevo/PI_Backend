@@ -4,22 +4,20 @@ const { error: logError } = require('../middlewares/logger');
 exports.getAll = async function (req, res) {
   try {
     const user = req.user;
-    const atividades = await Atividade.find()
-      .populate('alunoId');
 
     if (user.role === 'superadmin') {
+      const [atividades] = await Atividade.findAll();
       return res.json(atividades);
     }
 
     if (user.role === 'coordenador') {
-      const filtradas = atividades.filter(a =>
-        a.alunoId &&
-        a.alunoId.coordenadorId == user.id
-      );
-      return res.json(filtradas);
+      const [atividades] = await Atividade.findByCoordenador(user.id);
+      return res.json(atividades);
     }
+
     return res.status(403).json({ message: 'Sem permissão' });
   } catch (err) {
+    logError('Erro getAll atividade: ' + err.message);
     return res.status(500).json({ error: err.message });
   }
 };

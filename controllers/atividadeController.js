@@ -3,15 +3,15 @@ const { error: logError } = require('../middlewares/logger');
 
 exports.getAll = async function (req, res) {
   try {
-    const user = req.user;
+    const user = req.usuario;
 
-    if (user.role === 'superadmin') {
+    if (user.tipo_usuario === 'superadmin') {
       const [atividades] = await Atividade.findAll();
       return res.json(atividades);
     }
 
-    if (user.role === 'coordenador') {
-      const [atividades] = await Atividade.findByCoordenador(user.id);
+    if (user.tipo_usuario === 'coordenador') {
+      const [atividades] = await Atividade.findByCoordenador(user.idCoordenador);
       return res.json(atividades);
     }
 

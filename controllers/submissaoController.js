@@ -14,6 +14,7 @@ cloudinary.config({
 });
 
 const resend = new Resend(process.env.RESEND_API_KEY);
+const REMETENTE_EMAIL = process.env.RESEND_FROM_EMAIL || 'Sistema de Certificados <onboarding@resend.dev>';
 
 async function extrairTextoOCR(buffer) {
   try {
@@ -33,12 +34,17 @@ function extrairHorasDoTexto(texto) {
 
 async function enviarERegistrarEmail({ destinatario, assunto, corpo, submissaoIdParaLog }) {
   try {
-    await resend.emails.send({
-      from:    'Sistema de Certificados <onboarding@resend.dev>',
+    const resultado = await resend.emails.send({
+      from:    REMETENTE_EMAIL,
       to:      destinatario,
       subject: assunto,
       html:    corpo,
     });
+
+    if (resultado.error) {
+      logError(`Erro envio de email para ${destinatario} (submissao ${submissaoIdParaLog}): ` + resultado.error.message);
+      return { enviado: false, erro: resultado.error.message };
+    }
 
     await Notificacao.create({
       submissao_idSubmissao: submissaoIdParaLog,
@@ -47,8 +53,11 @@ async function enviarERegistrarEmail({ destinatario, assunto, corpo, submissaoId
       corpo,
       dataEnvio: new Date(),
     });
+
+    return { enviado: true };
   } catch (err) {
     logError(`Erro envio de email para ${destinatario} (submissao ${submissaoIdParaLog}): ` + err.message);
+    return { enviado: false, erro: err.message };
   }
 }
 
@@ -214,21 +223,25 @@ exports.create = async (req, res) => {
   [idSubmissao]
 );
 
+let avisoEmail = null;
 if (dados?.emailCoordenador) {
   const { assunto, corpo } = emailParaCoordenador(
     dados.nomeAluno,
     dados.nomeAtividade,
     urlCertificado
   );
-  await enviarERegistrarEmail({
+  const resultadoEmail = await enviarERegistrarEmail({
     destinatario: dados.emailCoordenador,
     assunto,
     corpo,
     submissaoIdParaLog: idSubmissao,
   });
+  if (!resultadoEmail.enviado) {
+    avisoEmail = 'Submissão criada, mas não foi possível notificar o coordenador por e-mail.';
+  }
 }
 
-res.status(201).json({ id: idSubmissao, urlCertificado, textoOCR, horasOCR });
+res.status(201).json({ id: idSubmissao, urlCertificado, textoOCR, horasOCR, avisoEmail });
 } catch (err) {
   logError('Erro create submissao: ' + err.message);
   res.status(500).json({ message: 'Erro interno', error: err.message });
@@ -260,14 +273,18 @@ exports.updateStatus = async (req, res) => {
       return res.status(404).json({ message: 'Aluno não encontrado para esta submissão.' });
     }
 
+    let avisoEmail = null;
     if (['aprovada', 'rejeitada'].includes(status)) {
       const { assunto, corpo } = emailParaAluno(status, dadosAluno.nome, observacao);
-      await enviarERegistrarEmail({
+      const resultadoEmail = await enviarERegistrarEmail({
         destinatario: dadosAluno.email,
         assunto,
         corpo,
         submissaoIdParaLog: req.params.id,
       });
+      if (!resultadoEmail.enviado) {
+        avisoEmail = 'Status atualizado, mas não foi possível notificar o aluno por e-mail.';
+      }
     }
 
     if (status === 'aprovada') {
@@ -304,7 +321,7 @@ exports.updateStatus = async (req, res) => {
       });
     }
 
-    res.json({ message: 'Status atualizado' });
+    res.json({ message: 'Status atualizado', avisoEmail });
   } catch (err) {
     logError('Erro updateStatus: ' + err.message);
     res.status(500).json({ message: 'Erro interno', error: err.message });

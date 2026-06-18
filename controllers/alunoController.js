@@ -78,9 +78,32 @@ exports.getCursos = async (req, res) => {
 
 exports.addCurso = async (req, res) => {
   try {
-    await Aluno.addCurso(req.params.matricula, req.body.idCurso);
+    const { matricula } = req.params;
+    const { idCurso } = req.body;
+
+    
+    if (!idCurso) {
+      return res.status(400).json({ message: 'idCurso é obrigatório no body' });
+    }
+
+   
+    const [aluno] = await Aluno.findById(matricula);
+    if (!aluno.length) {
+      return res.status(404).json({ message: 'Aluno não encontrado' });
+    }
+
+    await Aluno.addCurso(matricula, idCurso);
     res.status(201).json({ message: 'Matriculado no curso' });
+
   } catch (err) {
+    
+    if (err.code === 'ER_DUP_ENTRY') {
+      return res.status(409).json({ message: 'Aluno já está matriculado nesse curso' });
+    }
+    
+    if (err.code === 'ER_NO_REFERENCED_ROW_2') {
+      return res.status(404).json({ message: 'Curso não encontrado' });
+    }
     logError('Erro addCurso aluno: ' + err.message);
     res.status(500).json({ message: 'Erro interno', error: err.message });
   }

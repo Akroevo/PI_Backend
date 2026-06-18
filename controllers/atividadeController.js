@@ -1,34 +1,28 @@
 const Atividade = require('../models/atividadeModel');
 const { error: logError } = require('../middlewares/logger');
 
-async function getAll(req, res) {
+exports.getAll = async function (req, res) {
   try {
     const user = req.user;
-
     const atividades = await Atividade.find()
       .populate('alunoId');
 
-    
     if (user.role === 'superadmin') {
       return res.json(atividades);
     }
 
-    
     if (user.role === 'coordenador') {
       const filtradas = atividades.filter(a =>
         a.alunoId &&
         a.alunoId.coordenadorId == user.id
       );
-
       return res.json(filtradas);
     }
-
     return res.status(403).json({ message: 'Sem permissão' });
-
   } catch (err) {
     return res.status(500).json({ error: err.message });
   }
-}
+};
 
 exports.getById = async (req, res) => {
   try {

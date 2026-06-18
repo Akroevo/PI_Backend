@@ -4,7 +4,7 @@ const Certificado = require('../models/certificadoModel');
 const db          = require('../database/db');
 const { Resend }  = require('resend');
 const cloudinary  = require('cloudinary').v2;
-const { ImageAnnotatorClient } = require('@google-cloud/vision');
+const Tesseract   = require('tesseract.js');
 const { error: logError } = require('../middlewares/logger');
 
 cloudinary.config({
@@ -15,17 +15,12 @@ cloudinary.config({
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-const visionClient = new ImageAnnotatorClient({
-  credentials: JSON.parse(process.env.GOOGLE_VISION_KEY),
-});
-
 async function extrairTextoOCR(buffer) {
   try {
-    const [result] = await visionClient.textDetection({ image: { content: buffer } });
-    const anotacoes = result.textAnnotations;
-    return anotacoes?.length ? anotacoes[0].description : null;
+    const { data: { text } } = await Tesseract.recognize(buffer, 'por', { logger: () => {} });
+    return text || null;
   } catch (err) {
-    logError('Erro OCR: ' + err.message);
+    logError('Erro OCR Tesseract: ' + err.message);
     return null;
   }
 }

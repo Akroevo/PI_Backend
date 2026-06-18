@@ -1,7 +1,8 @@
 const Usuario = require('../models/usuarioModel');
+const { error: logError } = require('../middlewares/logger');
 
 const erroInterno = (res, err) => {
-  console.error('Erro usuarioController:', err.message);
+  logError('Erro usuarioController: ' + err.message);
   res.status(500).json({ message: 'Erro interno', error: err.message });
 };
 

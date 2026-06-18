@@ -1,4 +1,5 @@
 const Coordenador = require('../models/coordenadorModel');
+const { error: logError } = require('../middlewares/logger');
 const Submissao   = require('../models/submissaoModel');
 const submissaoController = require('./submissaoController');
 
@@ -7,7 +8,7 @@ exports.getAll = async (req, res) => {
     const [rows] = await Coordenador.findAll();
     res.json(rows);
   } catch (err) {
-    console.error('Erro getAll coordenador:', err.message);
+    logError('Erro getAll coordenador: ' + err.message);
     res.status(500).json({ message: 'Erro interno', error: err.message });
   }
 };
@@ -18,7 +19,7 @@ exports.getById = async (req, res) => {
     if (!rows || !rows.length) return res.status(404).json({ message: 'Coordenador não encontrado.' });
     res.json(rows[0]);
   } catch (err) {
-    console.error('Erro getById coordenador:', err.message);
+    logError('Erro getById coordenador: ' + err.message);
     res.status(500).json({ message: 'Erro interno', error: err.message });
   }
 };
@@ -37,7 +38,7 @@ exports.create = async (req, res) => {
     }
     res.status(201).json({ id: idCoordenador });
   } catch (err) {
-    console.error('Erro create coordenador:', err.message);
+    logError('Erro create coordenador: ' + err.message);
     res.status(500).json({ message: 'Erro interno', error: err.message });
   }
 };
@@ -55,7 +56,7 @@ exports.update = async (req, res) => {
     }
     res.json({ message: 'Atualizado com sucesso' });
   } catch (err) {
-    console.error('Erro update coordenador:', err.message);
+    logError('Erro update coordenador: ' + err.message);
     res.status(500).json({ message: 'Erro interno', error: err.message });
   }
 };
@@ -67,7 +68,7 @@ exports.remove = async (req, res) => {
     await Coordenador.delete(req.params.id);
     res.json({ message: 'Removido com sucesso' });
   } catch (err) {
-    console.error('Erro remove coordenador:', err.message);
+    logError('Erro remove coordenador: ' + err.message);
     res.status(500).json({ message: 'Erro interno', error: err.message });
   }
 };
@@ -79,7 +80,7 @@ exports.getCursos = async (req, res) => {
     const [cursos] = await Coordenador.getCursos(req.params.id);
     res.json(cursos);
   } catch (err) {
-    console.error('Erro getCursos coordenador:', err.message);
+    logError('Erro getCursos coordenador: ' + err.message);
     res.status(500).json({ message: 'Erro interno', error: err.message });
   }
 };
@@ -92,7 +93,7 @@ exports.addCurso = async (req, res) => {
     await Coordenador.addCurso(req.params.id, req.body.idCurso);
     res.status(201).json({ message: 'Curso associado' });
   } catch (err) {
-    console.error('Erro addCurso coordenador:', err.message);
+    logError('Erro addCurso coordenador: ' + err.message);
     res.status(500).json({ message: 'Erro interno', error: err.message });
   }
 };
@@ -104,7 +105,7 @@ exports.removeCurso = async (req, res) => {
     await Coordenador.removeCurso(req.params.id, req.params.idCurso);
     res.json({ message: 'Curso desassociado' });
   } catch (err) {
-    console.error('Erro removeCurso coordenador:', err.message);
+    logError('Erro removeCurso coordenador: ' + err.message);
     res.status(500).json({ message: 'Erro interno', error: err.message });
   }
 };
@@ -129,7 +130,7 @@ exports.avaliarSubmissao = async (req, res) => {
     req.body      = { status, observacao };
     return submissaoController.updateStatus(req, res);
   } catch (err) {
-    console.error('Erro avaliarSubmissao coordenador:', err.message);
+    logError('Erro avaliarSubmissao coordenador: ' + err.message);
     res.status(500).json({ message: 'Erro interno ao avaliar submissão.' });
   }
 };

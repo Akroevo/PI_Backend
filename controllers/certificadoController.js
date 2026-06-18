@@ -1,10 +1,12 @@
 const Certificado = require('../models/certificadoModel');
+const { error: logError } = require('../middlewares/logger');
 
 exports.getAll = async (req, res) => {
   try {
     const [rows] = await Certificado.findAll();
     res.json(rows);
   } catch (err) {
+    logError('Erro getAll certificado: ' + err.message);
     res.status(500).json({ message: 'Erro interno no servidor.' });
   }
 };
@@ -17,6 +19,7 @@ exports.getById = async (req, res) => {
     }
     res.json(rows);
   } catch (err) {
+    logError('Erro getById certificado: ' + err.message);
     res.status(500).json({ message: 'Erro interno no servidor.' });
   }
 };
@@ -29,6 +32,7 @@ exports.getBySubmissao = async (req, res) => {
     }
     res.json(rows);
   } catch (err) {
+    logError('Erro getBySubmissao certificado: ' + err.message);
     res.status(500).json({ message: 'Erro interno no servidor.' });
   }
 };
@@ -41,6 +45,7 @@ exports.getByAluno = async (req, res) => {
     }
     res.json(rows);
   } catch (err) {
+    logError('Erro getByAluno certificado: ' + err.message);
     res.status(500).json({ message: 'Erro interno no servidor.' });
   }
 };
@@ -54,6 +59,7 @@ exports.create = async (req, res) => {
     const [result] = await Certificado.create(req.body);
     res.status(201).json({ id: result.insertId });
   } catch (err) {
+    logError('Erro create certificado: ' + err.message);
     res.status(500).json({ message: 'Erro interno no servidor.' });
   }
 };
@@ -68,6 +74,7 @@ exports.update = async (req, res) => {
     await Certificado.update(req.params.id, req.body);
     res.json({ message: 'Atualizado com sucesso' });
   } catch (err) {
+    logError('Erro update certificado: ' + err.message);
     res.status(500).json({ message: 'Erro interno no servidor.' });
   }
 };
@@ -82,6 +89,7 @@ exports.remove = async (req, res) => {
     await Certificado.delete(req.params.id);
     res.json({ message: 'Removido com sucesso' });
   } catch (err) {
+    logError('Erro remove certificado: ' + err.message);
     res.status(500).json({ message: 'Erro interno no servidor.' });
   }
 };

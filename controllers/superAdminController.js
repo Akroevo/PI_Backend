@@ -1,7 +1,8 @@
 const SuperAdmin = require('../models/superAdminModel');
+const { error: logError } = require('../middlewares/logger');
 
 const erroInterno = (res, err) => {
-  console.error('Erro superAdminController:', err.message);
+  logError('Erro superAdminController: ' + err.message);
   res.status(500).json({ message: 'Erro interno', error: err.message });
 };
 

@@ -1,6 +1,7 @@
 const db = require('../database/db');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const { error: logError } = require('../middlewares/logger');
 
 exports.login = async (req, res) => {
   try {
@@ -49,7 +50,7 @@ exports.login = async (req, res) => {
     res.json({ token, tipo_usuario: tipoNormalizado });
 
   } catch (err) {
-    console.error(err);
+    logError('Erro login: ' + err.message);
     res.status(500).json({ message: 'Erro interno', error: err.message });
   }
 };

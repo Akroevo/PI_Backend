@@ -1,4 +1,5 @@
 const Aluno = require('../models/alunoModel');
+const { error: logError } = require('../middlewares/logger');
 const db = require('../database/db');
 
 exports.getAll = async (req, res) => {
@@ -10,7 +11,7 @@ exports.getAll = async (req, res) => {
     }));
     res.json(alunos);
   } catch (err) {
-    console.error('Erro getAll aluno:', err.message);
+    logError('Erro getAll aluno: ' + err.message);
     res.status(500).json({ message: 'Erro interno', error: err.message });
   }
 };
@@ -22,7 +23,7 @@ exports.getById = async (req, res) => {
     const [cursos] = await Aluno.getCursos(req.params.matricula);
     res.json({ ...rows[0], cursos });
   } catch (err) {
-    console.error('Erro getById aluno:', err.message);
+    logError('Erro getById aluno: ' + err.message);
     res.status(500).json({ message: 'Erro interno', error: err.message });
   }
 };
@@ -32,7 +33,7 @@ exports.create = async (req, res) => {
     await Aluno.create(req.body);
     res.status(201).json({ message: 'Aluno criado com sucesso' });
   } catch (err) {
-    console.error('Erro create aluno:', err.message);
+    logError('Erro create aluno: ' + err.message);
     res.status(500).json({ message: 'Erro interno', error: err.message });
   }
 };
@@ -50,7 +51,7 @@ exports.update = async (req, res) => {
 
     res.json({ message: 'Atualizado' });
   } catch (err) {
-    console.error('Erro update aluno:', err.message);
+    logError('Erro update aluno: ' + err.message);
     res.status(500).json({ message: 'Erro interno', error: err.message });
   }
 };
@@ -60,7 +61,7 @@ exports.remove = async (req, res) => {
     await Aluno.delete(req.params.matricula);
     res.json({ message: 'Removido' });
   } catch (err) {
-    console.error('Erro remove aluno:', err.message);
+    logError('Erro remove aluno: ' + err.message);
     res.status(500).json({ message: 'Erro interno', error: err.message });
   }
 };
@@ -70,7 +71,7 @@ exports.getCursos = async (req, res) => {
     const [rows] = await Aluno.getCursos(req.params.matricula);
     res.json(rows);
   } catch (err) {
-    console.error('Erro getCursos aluno:', err.message);
+    logError('Erro getCursos aluno: ' + err.message);
     res.status(500).json({ message: 'Erro interno', error: err.message });
   }
 };
@@ -80,7 +81,7 @@ exports.addCurso = async (req, res) => {
     await Aluno.addCurso(req.params.matricula, req.body.idCurso);
     res.status(201).json({ message: 'Matriculado no curso' });
   } catch (err) {
-    console.error('Erro addCurso aluno:', err.message);
+    logError('Erro addCurso aluno: ' + err.message);
     res.status(500).json({ message: 'Erro interno', error: err.message });
   }
 };
@@ -90,7 +91,7 @@ exports.removeCurso = async (req, res) => {
     await Aluno.removeCurso(req.params.matricula, req.params.idCurso);
     res.json({ message: 'Desmatriculado do curso' });
   } catch (err) {
-    console.error('Erro removeCurso aluno:', err.message);
+    logError('Erro removeCurso aluno: ' + err.message);
     res.status(500).json({ message: 'Erro interno', error: err.message });
   }
 };
@@ -100,7 +101,7 @@ exports.getSemCurso = async (req, res) => {
     const [rows] = await Aluno.findSemCurso();
     res.json(rows);
   } catch (err) {
-    console.error('Erro getSemCurso aluno:', err.message);
+    logError('Erro getSemCurso aluno: ' + err.message);
     res.status(500).json({ message: 'Erro interno', error: err.message });
   }
 };
@@ -114,7 +115,7 @@ exports.getAlunosByCoordenador = async (req, res) => {
     }));
     res.json(alunos);
   } catch (err) {
-    console.error('Erro getAlunosByCoordenador:', err.message);
+    logError('Erro getAlunosByCoordenador: ' + err.message);
     res.status(500).json({ message: 'Erro interno', error: err.message });
   }
 };

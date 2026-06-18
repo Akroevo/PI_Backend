@@ -1,11 +1,12 @@
 const Regra = require('../models/regraModel');
+const { error: logError } = require('../middlewares/logger');
 
 exports.getAll = async (req, res) => {
   try {
     const [rows] = await Regra.findAll();
     res.json(rows);
   } catch (err) {
-    console.error('Erro getAll regra:', err.message);
+    logError('Erro getAll regra: ' + err.message);
     res.status(500).json({ message: 'Erro interno', error: err.message });
   }
 };
@@ -18,7 +19,7 @@ exports.getById = async (req, res) => {
     }
     res.json(rows);
   } catch (err) {
-    console.error('Erro getById regra:', err.message);
+    logError('Erro getById regra: ' + err.message);
     res.status(500).json({ message: 'Erro interno', error: err.message });
   }
 };
@@ -31,7 +32,7 @@ exports.getByCurso = async (req, res) => {
     const [rows] = await Regra.findByCurso(req.params.idCurso);
     res.json(rows);
   } catch (err) {
-    console.error('Erro getByCurso regra:', err.message);
+    logError('Erro getByCurso regra: ' + err.message);
     res.status(500).json({ message: 'Erro interno', error: err.message });
   }
 };
@@ -44,7 +45,7 @@ exports.create = async (req, res) => {
     const [result] = await Regra.create(req.body);
     res.status(201).json({ id: result.insertId });
   } catch (err) {
-    console.error('Erro create regra:', err.message);
+    logError('Erro create regra: ' + err.message);
     res.status(500).json({ message: 'Erro interno', error: err.message });
   }
 };
@@ -58,7 +59,7 @@ exports.update = async (req, res) => {
     await Regra.update(req.params.id, req.body);
     res.json({ message: 'Atualizado com sucesso' });
   } catch (err) {
-    console.error('Erro update regra:', err.message);
+    logError('Erro update regra: ' + err.message);
     res.status(500).json({ message: 'Erro interno', error: err.message });
   }
 };
@@ -72,7 +73,7 @@ exports.remove = async (req, res) => {
     await Regra.delete(req.params.id);
     res.json({ message: 'Removido com sucesso' });
   } catch (err) {
-    console.error('Erro remove regra:', err.message);
+    logError('Erro remove regra: ' + err.message);
     res.status(500).json({ message: 'Erro interno', error: err.message });
   }
 };

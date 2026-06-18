@@ -4,6 +4,7 @@ const Certificado = require('../models/certificadoModel');
 const db          = require('../database/db');
 const nodemailer  = require('nodemailer');
 const cloudinary  = require('cloudinary').v2;
+const { error: logError } = require('../middlewares/logger');
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -19,7 +20,31 @@ const transporter = nodemailer.createTransport({
     user: process.env.MAIL_USER,
     pass: process.env.MAIL_PASS,
   },
+  connectionTimeout: 10000,
+  greetingTimeout: 10000,
+  socketTimeout: 10000,
 });
+
+async function enviarERegistrarEmail({ destinatario, assunto, corpo, submissaoIdParaLog }) {
+  try {
+    await transporter.sendMail({
+      from:    `"Sistema de Certificados" <${process.env.MAIL_USER}>`,
+      to:      destinatario,
+      subject: assunto,
+      html:    corpo,
+    });
+
+    await Notificacao.create({
+      submissao_idSubmissao: submissaoIdParaLog,
+      destinatario,
+      assunto,
+      corpo,
+      dataEnvio: new Date(),
+    });
+  } catch (err) {
+    logError(`Erro envio de email para ${destinatario} (submissao ${submissaoIdParaLog}): ` + err.message);
+  }
+}
 
 function emailParaCoordenador(nomeAluno, nomeAtividade) {
   return {
@@ -58,7 +83,7 @@ exports.getAll = async (req, res) => {
     const [rows] = await Submissao.findAll();
     res.json(rows);
   } catch (err) {
-    console.error('Erro getAll submissao:', err.message);
+    logError('Erro getAll submissao: ' + err.message);
     res.status(500).json({ message: 'Erro interno', error: err.message });
   }
 };
@@ -69,7 +94,7 @@ exports.getById = async (req, res) => {
     if (!rows.length) return res.status(404).json({ message: 'Não encontrado' });
     res.json(rows[0]);
   } catch (err) {
-    console.error('Erro getById submissao:', err.message);
+    logError('Erro getById submissao: ' + err.message);
     res.status(500).json({ message: 'Erro interno', error: err.message });
   }
 };
@@ -79,7 +104,7 @@ exports.getByCoordenador = async (req, res) => {
     const [rows] = await Submissao.findByCoordenador(req.params.idCoordenador);
     res.json(rows);
   } catch (err) {
-    console.error('Erro getByCoordenador submissao:', err.message);
+    logError('Erro getByCoordenador submissao: ' + err.message);
     res.status(500).json({ message: 'Erro interno', error: err.message });
   }
 };
@@ -89,7 +114,7 @@ exports.getByAtividade = async (req, res) => {
     const [rows] = await Submissao.findByAtividade(req.params.idAtividade);
     res.json(rows);
   } catch (err) {
-    console.error('Erro getByAtividade submissao:', err.message);
+    logError('Erro getByAtividade submissao: ' + err.message);
     res.status(500).json({ message: 'Erro interno', error: err.message });
   }
 };
@@ -109,7 +134,6 @@ exports.create = async (req, res) => {
       urlCertificado = uploaded.secure_url;
     }
 
-    
     const idAtividade = req.body.atividade_idAtividade;
     const [[coordResult]] = await db.query(
       `SELECT cc.coordenador_idCoordenador
@@ -145,26 +169,17 @@ exports.create = async (req, res) => {
 
     if (dados?.emailCoordenador) {
       const { assunto, corpo } = emailParaCoordenador(dados.nomeAluno, dados.nomeAtividade);
-
-      await transporter.sendMail({
-        from:    `"Sistema de Certificados" <${process.env.MAIL_USER}>`,
-        to:      dados.emailCoordenador,
-        subject: assunto,
-        html:    corpo,
-      });
-
-      await Notificacao.create({
-        submissao_idSubmissao: idSubmissao,
-        destinatario:          dados.emailCoordenador,
+      await enviarERegistrarEmail({
+        destinatario: dados.emailCoordenador,
         assunto,
         corpo,
-        dataEnvio:             new Date(),
+        submissaoIdParaLog: idSubmissao,
       });
     }
 
     res.status(201).json({ id: idSubmissao, urlCertificado });
   } catch (err) {
-    console.error('Erro create submissao:', err.message);
+    logError('Erro create submissao: ' + err.message);
     res.status(500).json({ message: 'Erro interno', error: err.message });
   }
 };
@@ -196,20 +211,11 @@ exports.updateStatus = async (req, res) => {
 
     if (['aprovada', 'rejeitada'].includes(status)) {
       const { assunto, corpo } = emailParaAluno(status, dadosAluno.nome, observacao);
-
-      await transporter.sendMail({
-        from:    `"Sistema de Certificados" <${process.env.MAIL_USER}>`,
-        to:      dadosAluno.email,
-        subject: assunto,
-        html:    corpo,
-      });
-
-      await Notificacao.create({
-        submissao_idSubmissao: req.params.id,
-        destinatario:          dadosAluno.email,
+      await enviarERegistrarEmail({
+        destinatario: dadosAluno.email,
         assunto,
         corpo,
-        dataEnvio:             new Date(),
+        submissaoIdParaLog: req.params.id,
       });
     }
 
@@ -249,7 +255,7 @@ exports.updateStatus = async (req, res) => {
 
     res.json({ message: 'Status atualizado' });
   } catch (err) {
-    console.error('Erro updateStatus:', err.message);
+    logError('Erro updateStatus: ' + err.message);
     res.status(500).json({ message: 'Erro interno', error: err.message });
   }
 };
@@ -259,7 +265,7 @@ exports.remove = async (req, res) => {
     await Submissao.delete(req.params.id);
     res.json({ message: 'Removido' });
   } catch (err) {
-    console.error('Erro remove submissao:', err.message);
+    logError('Erro remove submissao: ' + err.message);
     res.status(500).json({ message: 'Erro interno', error: err.message });
   }
 };

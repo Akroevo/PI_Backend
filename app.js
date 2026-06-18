@@ -4,7 +4,7 @@ const morgan = require('morgan');
 const swaggerUi = require('swagger-ui-express');
 const swaggerSpec = require('./swagger');
 const { autorizar, apenasProprioAluno } = require('./middlewares/auth');
-const { logger } = require('./middlewares/logger');
+const { logger, error: logError } = require('./middlewares/logger');
 const cors = require('cors');
 const db = require('./database/db');
 
@@ -39,6 +39,7 @@ app.get('/api/logs', autorizar('superadmin'), async (req, res) => {
     const [rows] = await db.query('SELECT * FROM log ORDER BY timestamp DESC LIMIT 200');
     res.json(rows);
   } catch (err) {
+    logError('Erro listar logs: ' + err.message);
     res.status(500).json({ message: 'Erro interno', error: err.message });
   }
 });
@@ -74,7 +75,7 @@ app.get('/api/dashboard/aluno', apenasProprioAluno, async (req, res) => {
 
     res.json({ aluno, cursos, atividades, pendentes, aprovadas });
   } catch (err) {
-    console.error('Erro dashboard aluno:', err.message);
+    logError('Erro dashboard aluno: ' + err.message);
     res.status(500).json({ message: 'Erro interno', error: err.message });
   }
 });

@@ -32,10 +32,11 @@ const Aluno = {
       const [rows] = await db.query('SELECT matricula FROM aluno WHERE matricula = ?', [matricula]);
       existe = rows.length > 0;
     }
-    return db.query(
+    await db.query(
       'INSERT INTO aluno (matricula, nome, dataEntrada, cargaHorariaAcumulada, usuario_idusuario) VALUES (?,?,?,?,?)',
       [matricula, data.nome, data.dataEntrada, data.cargaHorariaAcumulada || 0, data.usuario_idusuario]
     );
+    return matricula;
   },
 
   update: (mat, data) => db.query(

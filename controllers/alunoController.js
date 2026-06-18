@@ -30,9 +30,22 @@ exports.getById = async (req, res) => {
 
 exports.create = async (req, res) => {
   try {
-    await Aluno.create(req.body);
-    res.status(201).json({ message: 'Aluno criado com sucesso' });
+    const matricula = await Aluno.create(req.body);
+
+    if (req.body.cursos && req.body.cursos.length > 0) {
+      for (const idCurso of req.body.cursos) {
+        await Aluno.addCurso(matricula, idCurso);
+      }
+    }
+
+    res.status(201).json({ message: 'Aluno criado com sucesso', matricula });
   } catch (err) {
+    if (err.code === 'ER_DUP_ENTRY') {
+      return res.status(409).json({ message: 'Aluno já matriculado nesse curso' });
+    }
+    if (err.code === 'ER_NO_REFERENCED_ROW_2') {
+      return res.status(404).json({ message: 'Curso não encontrado' });
+    }
     logError('Erro create aluno: ' + err.message);
     res.status(500).json({ message: 'Erro interno', error: err.message });
   }
@@ -49,8 +62,21 @@ exports.update = async (req, res) => {
       }
     }
 
+    if (req.body.cursos !== undefined) {
+      await Aluno.removeTodosCursos(req.params.matricula);
+      for (const idCurso of req.body.cursos) {
+        await Aluno.addCurso(req.params.matricula, idCurso);
+      }
+    }
+
     res.json({ message: 'Atualizado' });
   } catch (err) {
+    if (err.code === 'ER_DUP_ENTRY') {
+      return res.status(409).json({ message: 'Aluno já matriculado nesse curso' });
+    }
+    if (err.code === 'ER_NO_REFERENCED_ROW_2') {
+      return res.status(404).json({ message: 'Curso não encontrado' });
+    }
     logError('Erro update aluno: ' + err.message);
     res.status(500).json({ message: 'Erro interno', error: err.message });
   }
@@ -81,12 +107,10 @@ exports.addCurso = async (req, res) => {
     const { matricula } = req.params;
     const { idCurso } = req.body;
 
-    
     if (!idCurso) {
       return res.status(400).json({ message: 'idCurso é obrigatório no body' });
     }
 
-   
     const [aluno] = await Aluno.findById(matricula);
     if (!aluno.length) {
       return res.status(404).json({ message: 'Aluno não encontrado' });
@@ -94,13 +118,10 @@ exports.addCurso = async (req, res) => {
 
     await Aluno.addCurso(matricula, idCurso);
     res.status(201).json({ message: 'Matriculado no curso' });
-
   } catch (err) {
-    
     if (err.code === 'ER_DUP_ENTRY') {
       return res.status(409).json({ message: 'Aluno já está matriculado nesse curso' });
     }
-    
     if (err.code === 'ER_NO_REFERENCED_ROW_2') {
       return res.status(404).json({ message: 'Curso não encontrado' });
     }
